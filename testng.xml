@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="SunNXT Automation Suite" parallel="classes" thread-count="1">
+
+    <!-- Listener for auto-retry on failures -->
+    <listeners>
+        <listener class-name="listeners.AnnotationTransformer"/>
+    </listeners>
+
+    <!-- User Onboarding Tests -->
+    <test name="User Onboarding">
+        <classes>
+            <class name="userOnboarding.TC_Login"/>
+            <class name="userOnboarding.TC_UserCreation"/>
+            <class name="userOnboarding.TC_ContentLanguageSelection"/>
+        </classes>
+    </test>
+
+    <!-- Subscription Tests -->
+    <test name="Subscription">
+        <classes>
+            <class name="subscription.TC_SignUpAndSubscribe"/>
+            <class name="subscription.TC_SignUpAndSubscribeNetBanking"/>
+        </classes>
+    </test>
+
+    <!-- Content Playback Tests -->
+    <test name="Content Playback">
+        <classes>
+            <class name="contentPlayback.TC_HomePlayback"/>
+            <class name="contentPlayback.TC_MoviesPlayback"/>
+            <class name="contentPlayback.TC_LiveTVPlayback"/>
+        </classes>
+    </test>
+
+    <!-- Microdrama Tests -->
+    <test name="Microdrama">
+        <classes>
+            <class name="microdrama.TC_MicrodramaBrowse"/>
+            <class name="microdrama.TC_MicrodramaPlayback"/>
+            <class name="microdrama.TC_MicrodramaNavigation"/>
+        </classes>
+    </test>
+
+    <!-- Entitlement Validation Tests -->
+    <test name="Entitlement Validation">
+        <classes>
+            <class name="entitlementValidation.TC_ContentEntitlementValidation"/>
+            <class name="entitlementValidation.TC_LiveTVAccessValidation"/>
+            <class name="entitlementValidation.TC_DeviceLimitValidation"/>
+        </classes>
+    </test>
+
+</suite>
