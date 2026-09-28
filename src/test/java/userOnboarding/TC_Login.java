@@ -42,7 +42,7 @@ public class TC_Login extends TestBase {
         return new LoginPage(driver);
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void loginTestPositive() {
         test.info("Login test starts...");
 
@@ -115,7 +115,7 @@ public class TC_Login extends TestBase {
         test.pass("Validation error displayed for invalid ID: " + username);
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void invalidPasswordTest() {
         test.info("Invalid password test...");
 

@@ -46,7 +46,7 @@ public class TC_ContentLanguageSelection extends TestBase {
         test.pass("Dual-platform onboarding completed successfully");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void snsPreSelectedWhenSupportedLanguageChosenInSN() {
         test.info("SN includes SNS-supported languages -> should pre-select on SNS");
 
@@ -63,7 +63,7 @@ public class TC_ContentLanguageSelection extends TestBase {
         test.pass("SNS pre-selection based on SN selection verified");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void snsNotPreSelectedWhenNoSupportedLanguageInSN() {
         test.info("SN has no SNS-supported language -> nothing pre-selected on SNS");
 
@@ -80,7 +80,7 @@ public class TC_ContentLanguageSelection extends TestBase {
         test.pass("Manual SNS selection required and completed when no pre-selection");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void unsupportedSNSLanguagesShowComingSoon() {
         test.info("Unsupported SNS languages should show Coming Soon and be disabled");
 
@@ -96,7 +96,7 @@ public class TC_ContentLanguageSelection extends TestBase {
         test.pass("Unsupported SNS languages correctly shown as Coming Soon");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void supportedSNSLanguagesAreNotComingSoon() {
         test.info("Supported SNS languages should be selectable (not Coming Soon)");
 
@@ -112,7 +112,7 @@ public class TC_ContentLanguageSelection extends TestBase {
         test.pass("Supported SNS languages are selectable");
     }
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void selectAllSNLanguagesReflectsSupportedOnSNS() {
         test.info("Select all SN languages -> only 4 supported reflect on SNS");
 

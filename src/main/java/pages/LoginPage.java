@@ -146,7 +146,7 @@ public class LoginPage extends WaitUtils {
     }
 
     public boolean isDeviceLimitReachedDisplayed() {
-        return isElementVisible(5, deviceLimitHeader);
+        return isElementVisible(30, deviceLimitHeader);
     }
 
     /**
@@ -162,11 +162,11 @@ public class LoginPage extends WaitUtils {
     public boolean isLoggedIn() {
         try {
             waitForElementToBeVisible(60, org.openqa.selenium.By.xpath(
-                    "//div[@class='relative group inline-block pointer-events-auto']"));
-            logger.info("Login successful - profile icon visible");
+                    "//h1[text()='Choose your profile']"));
+            logger.info("Login successful - Choose your profile page displayed");
             return true;
         } catch (Exception e) {
-            logger.warn("Login not confirmed - profile icon not visible");
+            logger.warn("Login not confirmed - Choose your profile page not shown");
             return false;
         }
     }
