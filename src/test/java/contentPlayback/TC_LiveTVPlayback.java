@@ -13,6 +13,7 @@ import pages.HomePage;
 import pages.LiveTVDetailPage;
 import pages.LoginPage;
 import pages.PlayerControlsPage;
+import pages.ProfilePage;
 import config.ConfigReader;
 import config.Log;
 import reporting.ExtentReportManager;
@@ -46,7 +47,10 @@ public class TC_LiveTVPlayback extends TestBase {
         lp.login(ConfigReader.get("test.username"), ConfigReader.get("test.password"));
         test.info("User logged in");
 
-        waitForLoginSuccess();
+        ProfilePage profile = new ProfilePage(driver);
+        test.info("Total profiles: " + profile.getProfileCount());
+        profile.selectPrimaryProfile();
+        test.info("Primary profile selected");
 
         hp.navigateToLiveTv();
         test.info("Navigated to Live TV");

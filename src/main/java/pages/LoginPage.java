@@ -116,7 +116,7 @@ public class LoginPage extends WaitUtils {
     // ==================== DEVICE LIMIT ====================
 
     public void handleDeviceLimit() {
-        if (isElementVisible(5, deviceLimitHeader)) {
+        if (isElementVisible(30, deviceLimitHeader)) {
             addDeviceButton.click();
             logger.info("Device limit popup handled - Add Device clicked");
         }

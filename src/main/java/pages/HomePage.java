@@ -183,33 +183,49 @@ public class HomePage extends WaitUtils {
      * Pass -1 for random selection.
      */
     public void contentPlayBackCheck(int carouselIndex, int contentIndex) throws InterruptedException {
+        // Scroll the whole page so lazy-loaded carousel rows are rendered
         scrollPageWithLoad();
         logger.info("Extracting carousels...");
 
+        // Collect the visible carousel titles (used to confirm the target exists)
         List<String> carouselNames = new ArrayList<>();
         for (WebElement carousel : carouselList) {
             carouselNames.add(carousel.getText());
         }
 
+        // If caller passed -1, pick a random carousel row
         if (carouselIndex == -1 && !carouselList.isEmpty()) {
             carouselIndex = new Random().nextInt(carouselList.size());
         }
 
+        // Guard: if the requested index is beyond what loaded, fall back to a random valid one
+        if (carouselIndex >= carouselList.size()) {
+            logger.warn("Requested carousel index {} >= available {}. Picking random.",
+                    carouselIndex, carouselList.size());
+            carouselIndex = new Random().nextInt(carouselList.size());
+        }
+
+        // Resolve the chosen carousel's title for logging/validation
         String targetName = carouselList.get(carouselIndex).getText();
         logger.info("Targeted carousel: {}", targetName);
 
+        // Proceed only if the chosen carousel title is actually present
         if (carouselNames.contains(targetName)) {
+            // Bring the target carousel into view and open it
             WebElement targetCarousel = carouselList.get(carouselIndex);
             scrollIntoView(targetCarousel);
             targetCarousel.click();
 
+            // Limit how many nested "View All" pages we drill into
             int maxDepth = 5;
             int clickDepth = 0;
 
             while (clickDepth < maxDepth) {
+                // Grab the poster tiles currently rendered in the opened view
                 List<WebElement> insideCarousel = driver.findElements(
                         By.className("viewmore_movie_images__2NctY"));
 
+                // Scroll a few times to let more tiles lazy-load (up to ~30)
                 for (int i = 0; i < 5; i++) {
                     scrollByPixel();
                     Thread.sleep(5000);
@@ -217,37 +233,46 @@ public class HomePage extends WaitUtils {
                     if (insideCarousel.size() >= 30) break;
                 }
 
+                // If caller passed -1, pick a random tile from what loaded
                 if (contentIndex == -1 && !insideCarousel.isEmpty()) {
                     contentIndex = new Random().nextInt(insideCarousel.size());
                 }
 
+                // Guard against an index beyond the available tiles
                 if (contentIndex >= insideCarousel.size()) {
                     logger.warn("No content at index: {}", contentIndex);
                     break;
                 }
 
                 try {
+                    // Select the target tile, scroll it into view, and click it
                     WebElement contentToClick = insideCarousel.get(contentIndex);
                     scrollIntoView(contentToClick);
                     Thread.sleep(3000);
                     contentToClick.click();
                     Thread.sleep(3000);
 
+                    // Detect whether the click opened another "View All" listing (Sticky Banner present)
                     boolean morePages = !driver.findElements(
                             By.xpath("//img[@alt='Sticky Banner']")).isEmpty();
                     if (morePages) {
+                        // Went one level deeper: increment depth and re-randomize the next pick
                         clickDepth++;
                         contentIndex = -1;
                     } else {
+                        // Reached the content detail page: stop drilling
                         break;
                     }
                 } catch (NoSuchElementException e) {
+                    // Tile disappeared/relocated between find and click
                     logger.error("Element not found clicking content", e);
                 } catch (Exception e) {
+                    // Any other failure during the drill-down loop
                     logger.error("Exception during playback check", e);
                 }
             }
         } else {
+            // Chosen carousel title was not found on the page
             logger.warn("Carousel not found: {}", targetName);
         }
     }

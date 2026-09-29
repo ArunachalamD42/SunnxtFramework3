@@ -42,7 +42,7 @@ public class TC_Login extends TestBase {
         return new LoginPage(driver);
     }
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void loginTestPositive() {
         test.info("Login test starts...");
 

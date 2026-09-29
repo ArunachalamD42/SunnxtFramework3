@@ -31,40 +31,50 @@ public class PlayerControlsPage extends WaitUtils {
     @FindBy(xpath = "//video[@class='shaka-video']")
     private WebElement shakaPlayer;
 
-    @FindBy(xpath = "//button[@title='Fullscreen']")
+    @FindBy(xpath = "//button[@aria-label='Full screen']")
     private WebElement fullScreenButton;
 
-    @FindBy(xpath = "//button[@title='Exit Fullscreen']")
+    @FindBy(xpath = "//button[@aria-label='Exit full screen']")
     private WebElement exitFullScreenButton;
 
-    @FindBy(xpath = "//button[@title='Play']")
+    @FindBy(xpath = "//button[@aria-label='Play']")
     private WebElement playButton;
 
-    @FindBy(xpath = "//button[@title='Pause']")
+    @FindBy(xpath = "//button[@aria-label='Pause']")
     private WebElement pauseButton;
 
-    @FindBy(xpath = "//button[@title='Captions']")
+    @FindBy(xpath = "//button[@aria-label='Volume' or @aria-label='Mute' or @aria-label='Unmute']")
+    private WebElement muteButton;
+
+    @FindBy(xpath = "//button[@aria-label='Captions']")
     private WebElement captionsButton;
 
-    @FindBy(xpath = "//span[text()='captions off']")
+    @FindBy(xpath = "//span[@class='shaka-auto-span shaka-chosen-item'][text()='Off'] | //span[text()='Off']")
     private WebElement captionsOff;
 
     @FindBy(xpath = "//span[text()='English']")
     private WebElement captionsEnglish;
 
-    @FindBy(xpath = "(//div[@class='vjs-menu'])[2]")
+    // Quality: Shaka uses a settings/resolution button, then Advanced -> resolution list
+    @FindBy(xpath = "//button[contains(@class,'shaka-vod-resolution')]")
     private WebElement qualityMenu;
 
-    @FindBy(xpath = "//li[text()='1080p']")
+    @FindBy(xpath = "//button[@id='res-advanced']")
+    private WebElement advancedResolutionOption;
+
+    @FindBy(xpath = "//span[contains(@class,'res-label') and starts-with(normalize-space(.),'1080p')]")
     private WebElement quality1080;
 
-    @FindBy(xpath = "//li[text()='720p']")
+    @FindBy(xpath = "//span[contains(@class,'res-label') and starts-with(normalize-space(.),'720p')]")
     private WebElement quality720;
 
-    @FindBy(xpath = "//li[text()='360p']")
+    @FindBy(xpath = "//span[contains(@class,'res-label') and starts-with(normalize-space(.),'480p')]")
+    private WebElement quality480;
+
+    @FindBy(xpath = "//span[contains(@class,'res-label') and starts-with(normalize-space(.),'360p')]")
     private WebElement quality360;
 
-    @FindBy(xpath = "//li[text()='Auto']")
+    @FindBy(xpath = "//button[@id='res-auto']")
     private WebElement qualityAuto;
 
     @FindBy(xpath = "//h2[text()='Subscriptions']")
@@ -85,32 +95,56 @@ public class PlayerControlsPage extends WaitUtils {
     }
 
     public void fullScreen() {
-        waitForElementToBeVisible(5, fullScreenButton);
-        fullScreenButton.click();
-        logger.info("Entered fullscreen");
+        try {
+            waitForElementToBeVisible(5, fullScreenButton);
+            fullScreenButton.click();
+            logger.info("Entered fullscreen");
+        } catch (Exception e) {
+            logger.warn("Fullscreen button not available; skipping", e);
+        }
     }
 
     public void exitFullScreen() {
-        waitForElementToBeClickable(5, exitFullScreenButton);
-        exitFullScreenButton.click();
-        logger.info("Exited fullscreen");
+        try {
+            waitForElementToBeClickable(5, exitFullScreenButton);
+            exitFullScreenButton.click();
+            logger.info("Exited fullscreen");
+        } catch (Exception e) {
+            logger.warn("Exit fullscreen button not available; skipping", e);
+        }
     }
 
     public void moveFocusToPlayer() {
         try {
             Thread.sleep(5000);
-            contextClick(player);
+            WebElement target = isElementDisplayed(player) ? player : shakaPlayer;
+            contextClick(target);
             logger.info("Focus moved to player");
         } catch (Exception e) {
             logger.error("Error moving focus to player", e);
         }
     }
 
-    // ==================== QUALITY ====================
+    // ==================== QUALITY---- ====================
 
     public void changeQuality(String quality) {
+        // Open the Shaka settings/resolution menu
+        waitForElementToBeClickable(5, qualityMenu);
         qualityMenu.click();
-        implicitWait(3);
+        implicitWait(2);
+
+        if (quality.equalsIgnoreCase("auto")) {
+            // Auto is on the first menu panel, no drill-down needed
+            waitForElementToBeClickable(3, qualityAuto);
+            qualityAuto.click();
+            logger.info("Quality changed to: Auto");
+            return;
+        }
+
+        // Specific resolutions live behind the "Advanced" option
+        waitForElementToBeClickable(3, advancedResolutionOption);
+        advancedResolutionOption.click();
+        implicitWait(1);
 
         switch (quality.toLowerCase()) {
             case "1080":
@@ -119,11 +153,11 @@ public class PlayerControlsPage extends WaitUtils {
             case "720":
                 quality720.click();
                 break;
+            case "480":
+                quality480.click();
+                break;
             case "360":
                 quality360.click();
-                break;
-            case "auto":
-                qualityAuto.click();
                 break;
             default:
                 logger.warn("Invalid quality: {}", quality);

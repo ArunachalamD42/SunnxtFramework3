@@ -13,6 +13,7 @@ import pages.ContentLanguageSelectionPage;
 import pages.HomePage;
 import pages.LoginPage;
 import pages.PlayerControlsPage;
+import pages.ProfilePage;
 import config.ConfigReader;
 import config.Log;
 import reporting.ExtentReportManager;
@@ -46,7 +47,10 @@ public class TC_MoviesPlayback extends TestBase {
         lp.login(ConfigReader.get("test.username"), ConfigReader.get("test.password"));
         test.info("User logged in");
 
-        waitForLoginSuccess();
+        ProfilePage profile = new ProfilePage(driver);
+        test.info("Total profiles: " + profile.getProfileCount());
+        profile.selectPrimaryProfile();
+        test.info("Primary profile selected");
 
         hp.navigateToMovies();
         test.info("Navigated to Movies");
@@ -55,9 +59,9 @@ public class TC_MoviesPlayback extends TestBase {
         test.info("Random content selected from Movies");
 
         ContentDetailPage cdp = new ContentDetailPage(driver);
-        cdp.clickPlayButton();
         String contentName = cdp.getContentName();
         test.info("Playing: " + contentName);
+        cdp.clickPlayButton();
 
         PlayerControlsPage player = new PlayerControlsPage(driver);
         player.moveFocusToPlayer();

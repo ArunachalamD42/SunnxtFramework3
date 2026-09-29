@@ -17,7 +17,7 @@ import dataProvider.PlanConfig;
 import helpers.EntitlementHelper;
 import pages.ContentDetailPage;
 import pages.HomePage;
-import pages.PlayerPage;
+import pages.PlayerEntitlementPage;
 import reporting.ExtentReportManager;
 
 /**
@@ -71,7 +71,7 @@ public class TC_ContentEntitlementValidation extends TestBase {
         cdp.clickPlayButton();
         test.info("Play button clicked");
 
-        PlayerPage playerPage = new PlayerPage(driver);
+        PlayerEntitlementPage playerPage = new PlayerEntitlementPage(driver);
 
         // 1. CONTENT ACCESS VALIDATION
         if (plan.hasSNAccess()) {
@@ -162,7 +162,7 @@ public class TC_ContentEntitlementValidation extends TestBase {
         ContentDetailPage cdp = new ContentDetailPage(driver);
         cdp.clickPlayButton();
 
-        PlayerPage playerPage = new PlayerPage(driver);
+        PlayerEntitlementPage playerPage = new PlayerEntitlementPage(driver);
 
         // Verify content access
         if (plan.hasSNSAccess()) {
@@ -240,7 +240,7 @@ public class TC_ContentEntitlementValidation extends TestBase {
         ContentDetailPage cdp = new ContentDetailPage(driver);
         cdp.clickPlayButton();
 
-        PlayerPage playerPage = new PlayerPage(driver);
+        PlayerEntitlementPage playerPage = new PlayerEntitlementPage(driver);
 
         for (int episode = 2; episode <= 31; episode++) {
             Thread.sleep(2000);

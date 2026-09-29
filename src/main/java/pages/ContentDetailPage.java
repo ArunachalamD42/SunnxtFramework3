@@ -59,13 +59,20 @@ private WebElement subscribeToWatchButton;
     }
 
     public String getContentName() {
-        try {
-            String name = contentTitle.getText();
-            logger.info("Targeted Content: {}", name);
-            return name;
-        } catch (NoSuchElementException | org.openqa.selenium.StaleElementReferenceException e) {
-            logger.error("Failed to get content title", e);
-            return "";
+        org.openqa.selenium.By titleLocator = org.openqa.selenium.By.xpath("//span[@class='text-2xl']");
+        for (int attempt = 1; attempt <= 3; attempt++) {
+            try {
+                waitForElementToBeVisible(5, titleLocator);
+                String name = driver.findElement(titleLocator).getText();
+                logger.info("Targeted Content: {}", name);
+                return name;
+            } catch (NoSuchElementException | org.openqa.selenium.StaleElementReferenceException e) {
+                logger.warn("Content title not ready (attempt {}/3), retrying...", attempt);
+            } catch (Exception e) {
+                logger.warn("Content title lookup failed (attempt {}/3): {}", attempt, e.getMessage());
+            }
         }
+        logger.error("Failed to get content title after retries");
+        return "";
     }
 }

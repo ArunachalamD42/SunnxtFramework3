@@ -18,15 +18,19 @@ import config.Log;
 import helpers.WaitUtils;
 
 /**
- * PlayerPage - Handles video player interactions and entitlement inspections.
- * Extends PlayerControlsPage functionality with quality menu, audio menu,
- * and subscription prompt detection for entitlement validation.
+ * PlayerEntitlementPage - Inspects the player for entitlement validation.
+ *
+ * <p>Distinct from {@link PlayerControlsPage}: that page drives playback controls
+ * (play/pause/fullscreen/captions) and validates basic playback for the content
+ * playback tests. This page instead inspects what a plan is entitled to -
+ * available video qualities and audio tracks - plus paywall detection, for the
+ * entitlement validation suite.</p>
  */
-public class PlayerPage extends WaitUtils {
+public class PlayerEntitlementPage extends WaitUtils {
 
-    private static final Logger logger = Log.getLogger(PlayerPage.class);
+    private static final Logger logger = Log.getLogger(PlayerEntitlementPage.class);
 
-    public PlayerPage(WebDriver driver) {
+    public PlayerEntitlementPage(WebDriver driver) {
         super(driver);
     }
 

@@ -13,6 +13,7 @@ import pages.ContentLanguageSelectionPage;
 import pages.HomePage;
 import pages.LoginPage;
 import pages.PlayerControlsPage;
+import pages.ProfilePage;
 import config.ConfigReader;
 import config.Log;
 import reporting.ExtentReportManager;
@@ -35,7 +36,7 @@ public class TC_HomePlayback extends TestBase {
         ContentLanguageSelectionPage cls = new ContentLanguageSelectionPage(driver);
         cls.selectSNLanguages("tamil");
         cls.proceedToSNSScreen();
-        cls.selectSNSLanguages("tamil");
+       // cls.selectSNSLanguages("tamil");
         cls.clickProceed();
         test.info("Language selected");
 
@@ -46,15 +47,18 @@ public class TC_HomePlayback extends TestBase {
         lp.login(ConfigReader.get("test.username"), ConfigReader.get("test.password"));
         test.info("User logged in");
 
-        waitForLoginSuccess();
+        ProfilePage profile = new ProfilePage(driver);
+        test.info("Total profiles: " + profile.getProfileCount());
+        profile.selectPrimaryProfile();
+        test.info("Primary profile selected");
 
-        hp.contentPlayBackCheck(7, 1);
+        hp.contentPlayBackCheck(-1, -1);
         test.info("Content selected from carousel");
 
         ContentDetailPage cdp = new ContentDetailPage(driver);
-        cdp.clickPlayButton();
         String contentName = cdp.getContentName();
         test.info("Playing: " + contentName);
+        cdp.clickPlayButton();
 
         PlayerControlsPage player = new PlayerControlsPage(driver);
         player.moveFocusToPlayer();

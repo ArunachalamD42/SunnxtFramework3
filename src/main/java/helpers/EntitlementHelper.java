@@ -9,7 +9,7 @@ import dataProvider.PlanConfig;
 import pages.ContentLanguageSelectionPage;
 import pages.HomePage;
 import pages.LoginPage;
-import pages.PlayerPage;
+import pages.PlayerEntitlementPage;
 
 /**
  * EntitlementHelper - Shared validation logic for entitlement tests.
@@ -47,7 +47,7 @@ public class EntitlementHelper {
     /**
      * Validates that video playback started successfully within timeout.
      */
-    public static boolean validatePlaybackSuccess(PlayerPage playerPage, int timeoutSeconds) {
+    public static boolean validatePlaybackSuccess(PlayerEntitlementPage playerPage, int timeoutSeconds) {
         boolean playing = playerPage.waitForPlaybackStart(timeoutSeconds);
         if (playing) {
             logger.info("Playback validation PASSED");
