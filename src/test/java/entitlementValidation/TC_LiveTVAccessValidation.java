@@ -13,7 +13,7 @@ import config.Log;
 import dataProvider.EntitlementDataProvider;
 import dataProvider.PlanConfig;
 import helpers.EntitlementHelper;
-import pages.LiveTVDetailPage;
+import pages.ContentDetailPageLiveTV;
 import pages.LiveTVPage;
 import reporting.ExtentReportManager;
 
@@ -47,7 +47,7 @@ public class TC_LiveTVAccessValidation extends TestBase {
         test.info("Login successful");
 
         LiveTVPage liveTVPage = new LiveTVPage(driver);
-        LiveTVDetailPage liveTVDetailPage = new LiveTVDetailPage(driver);
+        ContentDetailPageLiveTV liveTVDetailPage = new ContentDetailPageLiveTV(driver);
 
         if (plan.isLiveTvAccess()) {
             // Plan SHOULD have Live TV access

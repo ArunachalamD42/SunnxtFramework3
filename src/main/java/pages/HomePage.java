@@ -179,6 +179,64 @@ public class HomePage extends WaitUtils {
     // ==================== CAROUSEL CONTENT ====================
 
     /**
+     * Picks the first content tile of the first carousel and opens it.
+     * No scrolling or random selection - used by control tests that just need
+     * any playable title quickly.
+     */
+    public void selectFirstContent() throws InterruptedException {
+        logger.info("Selecting first content from first carousel...");
+
+        // Let the section settle so carousel titles don't go stale mid-interaction
+        By carouselTitle = By.xpath("//h2");
+        waitForElementToBeVisible(15, carouselTitle);
+        Thread.sleep(2000);
+
+        // Re-find the first carousel fresh (avoid holding a stale PageFactory reference)
+        WebElement firstCarousel = driver.findElements(carouselTitle).get(0);
+        scrollIntoView(firstCarousel);
+        firstCarousel.click();
+
+        // Wait for the poster tiles of the opened carousel to render
+        By tileLocator = By.className("viewmore_movie_images__2NctY");
+        waitForElementToBeVisible(15, tileLocator);
+        Thread.sleep(2000);
+
+        // Click the first tile (re-find fresh right before clicking)
+        WebElement firstTile = driver.findElements(tileLocator).get(0);
+        scrollIntoView(firstTile);
+        firstTile.click();
+        logger.info("First content selected");
+        Thread.sleep(3000);
+    }
+
+    /**
+     * Picks the first Live TV channel tile and opens it.
+     * Live TV channels are direct anchor tiles (href starting with "/live/"),
+     * unlike VOD which needs a carousel -> tile drill-down.
+     */
+    public void selectFirstLiveChannel() throws InterruptedException {
+        logger.info("Selecting first live channel...");
+        // Channel tiles are anchors linking to a /live/ path
+        By channelTile = By.xpath("//a[starts-with(@href,'/live/')]");
+        waitForElementToBeVisible(15, channelTile);
+        Thread.sleep(2000);
+
+        // Click the first channel tile (re-find fresh to avoid stale reference)
+        WebElement firstChannel = driver.findElements(channelTile).get(0);
+        scrollIntoView(firstChannel);
+        Thread.sleep(1000);
+        try {
+            firstChannel.click();
+        } catch (org.openqa.selenium.ElementClickInterceptedException e) {
+            // An overlay/banner intercepted the click; fall back to a JS click
+            logger.warn("Channel click intercepted; using JS click");
+            js.executeScript("arguments[0].click();", firstChannel);
+        }
+        logger.info("First live channel selected");
+        Thread.sleep(3000);
+    }
+
+    /**
      * Scrolls, picks a carousel and content item, clicks it.
      * Pass -1 for random selection.
      */

@@ -40,7 +40,7 @@ private WebElement subscribeToWatchButton;
 
     /**
      * Clicks the VOD "Watch Now" play button on the content detail page.
-     * Live TV playback is handled separately by {@link LiveTVDetailPage}.
+     * Live TV playback is handled separately by {@link ContentDetailPageLiveTV}.
      */
     public void clickPlayButton() {
         logger.info("Attempting to click Watch Now button...");

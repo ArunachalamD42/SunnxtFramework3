@@ -8,9 +8,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import baseClass.TestBase;
+import pages.ContentDetailPageLiveTV;
 import pages.ContentLanguageSelectionPage;
 import pages.HomePage;
-import pages.LiveTVDetailPage;
 import pages.LoginPage;
 import pages.PlayerControlsPage;
 import pages.ProfilePage;
@@ -58,7 +58,7 @@ public class TC_LiveTVPlayback extends TestBase {
         hp.contentPlayBackCheck(-1, -1);
         test.info("Random channel selected");
 
-        LiveTVDetailPage liveTvDetail = new LiveTVDetailPage(driver);
+        ContentDetailPageLiveTV liveTvDetail = new ContentDetailPageLiveTV(driver);
         liveTvDetail.clickPlayButton();
 
         PlayerControlsPage player = new PlayerControlsPage(driver);

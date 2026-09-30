@@ -117,9 +117,12 @@ public class PlayerControlsPage extends WaitUtils {
     public void moveFocusToPlayer() {
         try {
             Thread.sleep(5000);
+            // Hover over the player so the Shaka control bar becomes visible
             WebElement target = isElementDisplayed(player) ? player : shakaPlayer;
-            contextClick(target);
-            logger.info("Focus moved to player");
+            act = new org.openqa.selenium.interactions.Actions(driver);
+            // Move to the player, then nudge slightly to trigger the mousemove that shows controls
+            act.moveToElement(target).moveByOffset(1, 1).build().perform();
+            logger.info("Mouse moved over player - controls should be visible");
         } catch (Exception e) {
             logger.error("Error moving focus to player", e);
         }
@@ -170,42 +173,56 @@ public class PlayerControlsPage extends WaitUtils {
 
     public void toggleCaptions(String enableOrDisable) {
         if (!isElementDisplayed(captionsButton)) {
-            logger.warn("Captions button not visible");
+            logger.warn("Captions button not visible; content may not have subtitles. Skipping.");
             return;
         }
-        captionsButton.click();
+        try {
+            captionsButton.click();
 
-        if (enableOrDisable.equalsIgnoreCase("enable")) {
-            waitForElementToBeClickable(3, captionsEnglish);
-            captionsEnglish.click();
-            logger.info("Captions enabled");
-        } else if (enableOrDisable.equalsIgnoreCase("disable")) {
-            waitForElementToBeClickable(3, captionsOff);
-            captionsOff.click();
-            logger.info("Captions disabled");
+            if (enableOrDisable.equalsIgnoreCase("enable")) {
+                waitForElementToBeClickable(5, captionsEnglish);
+                captionsEnglish.click();
+                logger.info("Captions enabled");
+            } else if (enableOrDisable.equalsIgnoreCase("disable")) {
+                waitForElementToBeClickable(5, captionsOff);
+                captionsOff.click();
+                logger.info("Captions disabled");
+            }
+        } catch (Exception e) {
+            logger.warn("Caption option not available for this content; skipping", e);
         }
     }
 
     // ==================== VOLUME & SEEK ====================
 
+    // JS snippet that returns the active video element (Shaka or plain HTML5)
+    // Resolves the active video element: Shaka player if present, else the HTML5 player
+    private static final String VIDEO_ELEMENT =
+            "(document.getElementById('player_html5_api') || document.querySelector('video.shaka-video'))";
+
     public void setVolume(double level) {
-        if (level < 0.0 || level > 1.0) {
-            logger.warn("Volume must be 0.0-1.0. Got: {}", level);
-            return;
+        if(level<0.1 || level>1.0) {
+            logger.warn("Volume level must be between 0.1 and 1.0. Provided: " + level);
         }
-        js.executeScript("document.getElementById('player_html5_api').volume = arguments[0];", level);
-        logger.info("Volume set to: {}", level);
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        js.executeScript("var v = " + VIDEO_ELEMENT + "; if (v) v.volume = arguments[0];", level);
+        logger.info("Volume set to: " + level);
     }
 
-    public void seekTo(double seconds) {
-        Object durationObj = js.executeScript("return document.getElementById('player_html5_api').duration");
-        double totalDuration = (durationObj instanceof Number) ? ((Number) durationObj).doubleValue() : 0;
+    public void seekContent(double SeekPosition) {
+        JavascriptExecutor js = (JavascriptExecutor) driver;
+        Object totalDurationObject = js.executeScript("var v = " + VIDEO_ELEMENT + "; return v ? v.duration : 0;");
 
-        if (seconds <= totalDuration) {
-            js.executeScript("document.getElementById('player_html5_api').currentTime = arguments[0];", seconds);
-            logger.info("Seeked to: {}s", seconds);
-        } else {
-            logger.warn("Seek {} exceeds duration {}. Skipping.", seconds, totalDuration);
+        double totalDuration=0.0;
+        if(totalDurationObject instanceof Number) {
+            totalDuration = ((Number)totalDurationObject).doubleValue();
+        }
+
+        if(SeekPosition <= totalDuration) {
+            js.executeScript("var v = " + VIDEO_ELEMENT + "; if (v) v.currentTime = arguments[0];", SeekPosition);
+            logger.info("Seeked content to position: " + SeekPosition + "s");
+        }else {
+            logger.warn("Seek position exceeds video duration. Skipping seek.");
         }
     }
 

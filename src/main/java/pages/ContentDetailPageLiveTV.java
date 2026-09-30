@@ -10,24 +10,24 @@ import config.Log;
 import helpers.WaitUtils;
 
 /**
- * LiveTVDetailPage - Live TV channel detail/info page shown before live playback.
+ * ContentDetailPageLiveTV - Live TV channel detail/info page shown before live playback.
  *
  * <p>This page is the Live TV counterpart to {@link ContentDetailPage} (which is
  * VOD-only). It owns the Live TV specific "Play" button and channel metadata so
  * that VOD and Live TV playback flows stay decoupled.</p>
  */
-public class LiveTVDetailPage extends WaitUtils {
+public class ContentDetailPageLiveTV extends WaitUtils {
 
-    private static final Logger logger = Log.getLogger(LiveTVDetailPage.class);
+    private static final Logger logger = Log.getLogger(ContentDetailPageLiveTV.class);
 
-    public LiveTVDetailPage(WebDriver driver) {
+    public ContentDetailPageLiveTV(WebDriver driver) {
         super(driver);
     }
 
-    @FindBy(xpath = "//div[text()='Play']")
+    @FindBy(xpath = "//button[contains(normalize-space(.),'Watch Now')]")
     private WebElement playButtonLiveTV;
 
-    @FindBy(xpath = "//span[@class='text-2xl']")
+    @FindBy(xpath = "//p[@class='text-lg font-semibold whitespace-nowrap']")
     private WebElement channelTitle;
 
     @FindBy(xpath = "//h2[text()='Subscriptions']")
@@ -37,18 +37,14 @@ public class LiveTVDetailPage extends WaitUtils {
      * Clicks the Live TV "Play" button on the channel detail page.
      */
     public void clickPlayButton() {
-        logger.info("Attempting to click Live TV play button...");
+        logger.info("Attempting to click Live TV Watch Now button...");
         try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        if (isElementDisplayed(playButtonLiveTV)) {
+            // Wait for the channel detail page to render the Watch Now button
+            waitForElementToBeClickable(15, playButtonLiveTV);
             playButtonLiveTV.click();
-            logger.info("Live TV play button clicked");
-        } else {
-            logger.warn("No Live TV play button found on channel detail page");
+            logger.info("Live TV Watch Now button clicked");
+        } catch (Exception e) {
+            logger.warn("No Live TV Watch Now button found on channel detail page", e);
         }
     }
 
