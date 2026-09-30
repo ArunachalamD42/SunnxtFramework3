@@ -102,11 +102,19 @@ public class LoginPage extends WaitUtils {
 
     /**
      * Complete 2-step login in one call.
+     * Continue is retried if the password step does not appear (flaky transition).
      */
     public void login(String loginId, String password) {
         enterLoginId(loginId);
         clickContinueButton();
-        implicitWait(10);
+
+        // The mobile -> password transition is occasionally flaky; retry Continue once
+        // if the password field has not appeared.
+        if (!isElementVisible(10, passwordField)) {
+            logger.warn("Password step not shown after Continue; retrying Continue...");
+            clickContinueButton();
+        }
+
         enterPassword(password);
         clickLoginButton();
         handleDeviceLimit();

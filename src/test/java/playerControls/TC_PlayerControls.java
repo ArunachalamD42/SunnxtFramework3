@@ -1,4 +1,4 @@
-package contentPlayback;
+package playerControls;
 
 import java.lang.reflect.Method;
 
@@ -8,7 +8,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import baseClass.TestBase;
-import pages.ContentDetailPageLiveTV;
+import pages.ContentDetailPage;
 import pages.ContentLanguageSelectionPage;
 import pages.HomePage;
 import pages.LoginPage;
@@ -19,14 +19,13 @@ import config.Log;
 import reporting.ExtentReportManager;
 
 /**
- * TC_LiveTVPlayerControls - Exercises player controls for a Live TV channel
- * (Shaka player): pause/play, volume, fullscreen enter/exit.
- * Seek, quality-advanced, and captions are skipped as they are not
- * applicable to live streams.
+ * TC_PlayerControls - Exercises the VOD video player controls (Shaka player):
+ * pause/play, fullscreen enter/exit, quality change, captions toggle, volume, seek.
+ * Uses the first title of the first carousel (no scroll/random) for speed.
  */
-public class TC_LiveTVPlayerControls extends TestBase {
+public class TC_PlayerControls extends TestBase {
 
-    private static final Logger logger = Log.getLogger(TC_LiveTVPlayerControls.class);
+    private static final Logger logger = Log.getLogger(TC_PlayerControls.class);
 
     @BeforeMethod
     public void setup(Method method) {
@@ -36,8 +35,8 @@ public class TC_LiveTVPlayerControls extends TestBase {
     }
 
     @Test(enabled = true)
-    public void liveTvPlayerControlsTest() throws InterruptedException {
-        logger.info("Starting Live TV Player Controls test...");
+    public void playerControlsTest() throws InterruptedException {
+        logger.info("Starting Player Controls test...");
 
         // Language selection
         ContentLanguageSelectionPage cls = new ContentLanguageSelectionPage(driver);
@@ -60,24 +59,24 @@ public class TC_LiveTVPlayerControls extends TestBase {
         profile.selectPrimaryProfile();
         test.info("Primary profile selected");
 
-        // Navigate to Live TV and open the first channel of the first carousel
-        hp.navigateToLiveTv();
-        test.info("Navigated to Live TV");
-        hp.selectFirstLiveChannel();
-        test.info("First live channel selected");
+        // Navigate to Movies and open the first title of the first carousel
+        hp.navigateToMovies();
+        test.info("Navigated to Movies");
+        hp.selectFirstContent();
+        test.info("First content selected from Movies");
 
-        // Start live playback
-        ContentDetailPageLiveTV liveTvDetail = new ContentDetailPageLiveTV(driver);
-        String channelName = liveTvDetail.getChannelName();
-        test.info("Playing channel: " + channelName);
-        liveTvDetail.clickPlayButton();
+        // Start playback
+        ContentDetailPage cdp = new ContentDetailPage(driver);
+        String contentName = cdp.getContentName();
+        test.info("Playing: " + contentName);
+        cdp.clickPlayButton();
 
         PlayerControlsPage player = new PlayerControlsPage(driver);
         player.moveFocusToPlayer();
         player.validatePlayback();
-        test.info("Live playback started");
+        test.info("Playback started");
 
-        // --- Exercise applicable controls ---
+        // --- Exercise controls ---
 
         // Pause then resume
         player.moveFocusToPlayer();
@@ -98,6 +97,11 @@ public class TC_LiveTVPlayerControls extends TestBase {
         test.info("Volume set to 0.8");
         Thread.sleep(1000);
 
+        // Seek forward
+        player.seekContent(60);
+        test.info("Seeked to 60s");
+        Thread.sleep(2000);
+
         // Fullscreen enter/exit
         player.moveFocusToPlayer();
         player.fullScreen();
@@ -109,13 +113,23 @@ public class TC_LiveTVPlayerControls extends TestBase {
         test.info("Exited fullscreen");
         Thread.sleep(2000);
 
-        // Note: Live channels do not support captions, so that control is skipped.
+        // Quality change (Advanced -> 720p)
+        player.moveFocusToPlayer();
+        player.changeQuality("720");
+        test.info("Quality changed to 720p");
+        Thread.sleep(2000);
 
-        // Confirm live playback is still healthy after control interactions
+        // Captions off
+        player.moveFocusToPlayer();
+        player.toggleCaptions("disable");
+        test.info("Captions disabled");
+        Thread.sleep(2000);
+
+        // Confirm playback is still healthy after control interactions
         player.moveFocusToPlayer();
         player.validatePlayback();
 
-        test.pass("Live TV player controls exercised successfully for: " + channelName);
+        test.pass("Player controls exercised successfully for: " + contentName);
     }
 
     @AfterMethod

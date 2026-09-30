@@ -75,6 +75,34 @@ public class HomePage extends WaitUtils {
     @FindBy(tagName = "h2")
     private List<WebElement> carouselList;
 
+    // ==================== LOCATORS ====================
+
+    // Carousel row title
+    private static final By CAROUSEL_TITLE = By.xpath("//h2");
+
+    // VOD poster tiles inside an opened carousel/view-all
+    private static final By CONTENT_TILE = By.className("viewmore_movie_images__2NctY");
+
+    // Live TV channel tiles scoped to the selected language's row
+    private static final By LIVE_CHANNEL_TILE =
+            By.xpath("(//div[contains(@class,'overflow-x-auto') and contains(@class,'hide-scrollbar')])[1]"
+                    + "//a[starts-with(@href,'/live/')]");
+
+    // Right arrow to reveal more channels in the row (present only when more exist)
+    private static final By LIVE_CHANNEL_NEXT_ARROW =
+            By.xpath("//div[contains(@class,'absolute') and contains(@class,'right-0') "
+                    + "and contains(@class,'cursor-pointer')]");
+
+    // Live TV language tabs (Tamil, Telugu, Malayalam, ...)
+    private static final By LIVE_LANGUAGE_TAB =
+            By.xpath("//button[normalize-space(.)='Tamil' or normalize-space(.)='Telugu' "
+                    + "or normalize-space(.)='Malayalam' or normalize-space(.)='Kannada' "
+                    + "or normalize-space(.)='Hindi' or normalize-space(.)='Bengali' "
+                    + "or normalize-space(.)='Marathi' or normalize-space(.)='English']");
+
+    // Marker shown when a deeper "View All" listing is opened
+    private static final By VIEW_ALL_BANNER = By.xpath("//img[@alt='Sticky Banner']");
+
     // ==================== PROFILE ACTIONS ====================
 
     public void hoverProfileIcon() {
@@ -187,22 +215,20 @@ public class HomePage extends WaitUtils {
         logger.info("Selecting first content from first carousel...");
 
         // Let the section settle so carousel titles don't go stale mid-interaction
-        By carouselTitle = By.xpath("//h2");
-        waitForElementToBeVisible(15, carouselTitle);
+        waitForElementToBeVisible(15, CAROUSEL_TITLE);
         Thread.sleep(2000);
 
         // Re-find the first carousel fresh (avoid holding a stale PageFactory reference)
-        WebElement firstCarousel = driver.findElements(carouselTitle).get(0);
+        WebElement firstCarousel = driver.findElements(CAROUSEL_TITLE).get(0);
         scrollIntoView(firstCarousel);
         firstCarousel.click();
 
         // Wait for the poster tiles of the opened carousel to render
-        By tileLocator = By.className("viewmore_movie_images__2NctY");
-        waitForElementToBeVisible(15, tileLocator);
+        waitForElementToBeVisible(15, CONTENT_TILE);
         Thread.sleep(2000);
 
         // Click the first tile (re-find fresh right before clicking)
-        WebElement firstTile = driver.findElements(tileLocator).get(0);
+        WebElement firstTile = driver.findElements(CONTENT_TILE).get(0);
         scrollIntoView(firstTile);
         firstTile.click();
         logger.info("First content selected");
@@ -210,29 +236,105 @@ public class HomePage extends WaitUtils {
     }
 
     /**
-     * Picks the first Live TV channel tile and opens it.
+     * Picks the first Live TV channel tile and opens it (no language change).
      * Live TV channels are direct anchor tiles (href starting with "/live/"),
      * unlike VOD which needs a carousel -> tile drill-down.
      */
     public void selectFirstLiveChannel() throws InterruptedException {
         logger.info("Selecting first live channel...");
-        // Channel tiles are anchors linking to a /live/ path
-        By channelTile = By.xpath("//a[starts-with(@href,'/live/')]");
-        waitForElementToBeVisible(15, channelTile);
+        selectLiveChannel(0);
+    }
+
+    /**
+     * Picks a random language tab, reveals all its channels (via the next arrow),
+     * then opens a random channel from that language row.
+     */
+    public void selectRandomLiveChannel() throws InterruptedException {
+        logger.info("Selecting a random language and live channel...");
+        selectRandomLanguage();
+
+        waitForElementToBeVisible(15, LIVE_CHANNEL_TILE);
         Thread.sleep(2000);
 
-        // Click the first channel tile (re-find fresh to avoid stale reference)
-        WebElement firstChannel = driver.findElements(channelTile).get(0);
-        scrollIntoView(firstChannel);
+        // If a right arrow is shown, more channels exist off-screen; click it to reveal them all
+        revealAllLiveChannels();
+
+        int count = driver.findElements(LIVE_CHANNEL_TILE).size();
+        int index = new Random().nextInt(count);
+        logger.info("Total channels in selected language: {}", count);
+        selectLiveChannel(index);
+    }
+
+    /**
+     * Clicks the "next" arrow repeatedly to scroll the channel row until no more
+     * channels load (arrow gone or count stops growing).
+     */
+    private void revealAllLiveChannels() throws InterruptedException {
+        int previousCount = -1;
+        int guard = 0; // safety cap to avoid an infinite loop
+        while (guard < 20) {
+            int currentCount = driver.findElements(LIVE_CHANNEL_TILE).size();
+            java.util.List<WebElement> arrows = driver.findElements(LIVE_CHANNEL_NEXT_ARROW);
+
+            // Stop when the arrow is gone or no new channels appeared after the last scroll
+            if (arrows.isEmpty() || currentCount == previousCount) {
+                break;
+            }
+            previousCount = currentCount;
+
+            WebElement arrow = arrows.get(0);
+            scrollIntoView(arrow);
+            try {
+                arrow.click();
+            } catch (org.openqa.selenium.ElementNotInteractableException e) {
+                js.executeScript("arguments[0].click();", arrow);
+            }
+            Thread.sleep(1500);
+            guard++;
+        }
+        logger.info("Revealed live channels: {}", driver.findElements(LIVE_CHANNEL_TILE).size());
+    }
+
+    /**
+     * Clicks a random Live TV language tab and waits for its channels to load.
+     */
+    public void selectRandomLanguage() throws InterruptedException {
+        waitForElementToBeVisible(15, LIVE_LANGUAGE_TAB);
+        int langCount = driver.findElements(LIVE_LANGUAGE_TAB).size();
+        if (langCount == 0) {
+            logger.warn("No language tabs found on Live TV page");
+            return;
+        }
+        int langIndex = new Random().nextInt(langCount);
+        WebElement language = driver.findElements(LIVE_LANGUAGE_TAB).get(langIndex);
+        String langName = language.getText();
+        scrollIntoView(language);
+        language.click();
+        logger.info("Live TV language selected: {}", langName);
+        Thread.sleep(3000);
+    }
+
+    /**
+     * Opens the Live TV channel tile at the given 0-based index.
+     * Channel tiles are anchors linking to a /live/ path.
+     */
+    private void selectLiveChannel(int index) throws InterruptedException {
+        waitForElementToBeVisible(15, LIVE_CHANNEL_TILE);
+        Thread.sleep(2000);
+
+        // Re-find fresh to avoid a stale reference, then click the chosen tile
+        WebElement channel = driver.findElements(LIVE_CHANNEL_TILE).get(index);
+        scrollIntoView(channel);
         Thread.sleep(1000);
         try {
-            firstChannel.click();
-        } catch (org.openqa.selenium.ElementClickInterceptedException e) {
-            // An overlay/banner intercepted the click; fall back to a JS click
-            logger.warn("Channel click intercepted; using JS click");
-            js.executeScript("arguments[0].click();", firstChannel);
+            channel.click();
+        } catch (org.openqa.selenium.ElementNotInteractableException e) {
+            // Overlay intercept or non-interactable anchor; fall back to a JS click
+            // (ElementClickInterceptedException is a subclass, so this covers both)
+            logger.warn("Channel not directly clickable; using JS click");
+            js.executeScript("arguments[0].click();", channel);
         }
-        logger.info("First live channel selected");
+        logger.info("Live channel [{}] selected", index);
         Thread.sleep(3000);
     }
 
@@ -280,14 +382,13 @@ public class HomePage extends WaitUtils {
 
             while (clickDepth < maxDepth) {
                 // Grab the poster tiles currently rendered in the opened view
-                List<WebElement> insideCarousel = driver.findElements(
-                        By.className("viewmore_movie_images__2NctY"));
+                List<WebElement> insideCarousel = driver.findElements(CONTENT_TILE);
 
                 // Scroll a few times to let more tiles lazy-load (up to ~30)
                 for (int i = 0; i < 5; i++) {
                     scrollByPixel();
                     Thread.sleep(5000);
-                    insideCarousel = driver.findElements(By.className("viewmore_movie_images__2NctY"));
+                    insideCarousel = driver.findElements(CONTENT_TILE);
                     if (insideCarousel.size() >= 30) break;
                 }
 
@@ -311,8 +412,7 @@ public class HomePage extends WaitUtils {
                     Thread.sleep(3000);
 
                     // Detect whether the click opened another "View All" listing (Sticky Banner present)
-                    boolean morePages = !driver.findElements(
-                            By.xpath("//img[@alt='Sticky Banner']")).isEmpty();
+                    boolean morePages = !driver.findElements(VIEW_ALL_BANNER).isEmpty();
                     if (morePages) {
                         // Went one level deeper: increment depth and re-randomize the next pick
                         clickDepth++;

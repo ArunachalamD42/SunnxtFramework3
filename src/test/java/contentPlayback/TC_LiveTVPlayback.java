@@ -55,8 +55,8 @@ public class TC_LiveTVPlayback extends TestBase {
         hp.navigateToLiveTv();
         test.info("Navigated to Live TV");
 
-        hp.contentPlayBackCheck(-1, -1);
-        test.info("Random channel selected");
+        hp.selectRandomLiveChannel();
+        test.info("Random live channel selected");
 
         ContentDetailPageLiveTV liveTvDetail = new ContentDetailPageLiveTV(driver);
         liveTvDetail.clickPlayButton();
