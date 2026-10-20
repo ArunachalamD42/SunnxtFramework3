@@ -67,7 +67,7 @@ public class TC_MoviesPlayback extends TestBase {
         player.moveFocusToPlayer();
         player.validatePlayback();
 
-        test.pass("Movies playback successful");
+        test.pass("Movies playback successfulqqqqqqqqqqq");
     }
 
     @AfterMethod
