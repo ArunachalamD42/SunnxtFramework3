@@ -14,7 +14,7 @@ import org.openqa.selenium.support.FindBy;
 
 import config.Log;
 import helpers.WaitUtils;
-
+import java.util.concurrent.ThreadLocalRandom;
 /**
  * HomePage - SunNXT home page interactions.
  * Handles navigation, profile menu, and carousel content selection.
@@ -298,19 +298,43 @@ public class HomePage extends WaitUtils {
     /**
      * Clicks a random Live TV language tab and waits for its channels to load.
      */
+    private int previousLanguageIndex = -1;
+
+    
     public void selectRandomLanguage() throws InterruptedException {
+
         waitForElementToBeVisible(15, LIVE_LANGUAGE_TAB);
-        int langCount = driver.findElements(LIVE_LANGUAGE_TAB).size();
+
+        List<WebElement> languages = driver.findElements(LIVE_LANGUAGE_TAB);
+        int langCount = languages.size();
+
         if (langCount == 0) {
             logger.warn("No language tabs found on Live TV page");
             return;
         }
-        int langIndex = new Random().nextInt(langCount);
-        WebElement language = driver.findElements(LIVE_LANGUAGE_TAB).get(langIndex);
+
+        if (langCount == 1) {
+            logger.warn("Only one language available. Cannot avoid repetition.");
+            return;
+        }
+
+        int langIndex;
+
+        do {
+            langIndex = ThreadLocalRandom.current().nextInt(langCount);
+        } while (langIndex == previousLanguageIndex);
+
+        WebElement language = languages.get(langIndex);
         String langName = language.getText();
+
         scrollIntoView(language);
         language.click();
+
+        previousLanguageIndex = langIndex;
+
+        logger.info("Live TV language index: {}", langIndex);
         logger.info("Live TV language selected: {}", langName);
+
         Thread.sleep(3000);
     }
 
