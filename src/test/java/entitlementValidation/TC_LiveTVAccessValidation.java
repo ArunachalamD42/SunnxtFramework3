@@ -13,8 +13,8 @@ import config.Log;
 import dataProvider.EntitlementDataProvider;
 import dataProvider.PlanConfig;
 import helpers.EntitlementHelper;
-import pages.ContentDetailPageLiveTV;
-import pages.LiveTVPage;
+import pagesSunnxt.ContentDetailPageLiveTV;
+import pagesSunnxt.LiveTVPage;
 import reporting.ExtentReportManager;
 
 /**

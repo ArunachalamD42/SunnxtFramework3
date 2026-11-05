@@ -8,14 +8,14 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import baseClass.TestBase;
-import pages.ContentDetailPage;
-import pages.ContentLanguageSelectionPage;
-import pages.HomePage;
-import pages.LoginPage;
-import pages.PlayerControlsPage;
-import pages.ProfilePage;
 import config.ConfigReader;
 import config.Log;
+import pagesSunnxt.ContentDetailPage;
+import pagesSunnxt.ContentLanguageSelectionPage;
+import pagesSunnxt.HomePage;
+import pagesSunnxt.LoginPage;
+import pagesSunnxt.PlayerControlsPage;
+import pagesSunnxt.ProfilePage;
 import reporting.ExtentReportManager;
 
 /**
@@ -50,7 +50,16 @@ public class TC_PlayerControls extends TestBase {
         HomePage hp = new HomePage(driver);
         hp.navigateToLogin();
         LoginPage lp = new LoginPage(driver);
-        lp.login(ConfigReader.get("test.username"), ConfigReader.get("test.password"));
+        String username = ConfigReader.get("test.username");
+        String password = ConfigReader.get("test.password");
+        lp.enterLoginId(username);
+        lp.clickContinueButton();
+        if (!lp.isPasswordFieldVisible()) {
+            lp.clickContinueButton();
+        }
+        lp.enterPassword(password);
+        lp.clickLoginButton();
+        lp.handleDeviceLimit();
         test.info("User logged in");
 
         // Profile selection
@@ -98,20 +107,20 @@ public class TC_PlayerControls extends TestBase {
         Thread.sleep(1000);
 
         // Seek forward
-        player.seekContent(60);
+        player.seekContent(300);
         test.info("Seeked to 60s");
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         // Fullscreen enter/exit
         player.moveFocusToPlayer();
         player.fullScreen();
         test.info("Entered fullscreen");
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         player.moveFocusToPlayer();
         player.exitFullScreen();
         test.info("Exited fullscreen");
-        Thread.sleep(2000);
+        Thread.sleep(1000);
 
         // Quality change (Advanced -> 720p)
         player.moveFocusToPlayer();
@@ -121,7 +130,7 @@ public class TC_PlayerControls extends TestBase {
 
         // Captions off
         player.moveFocusToPlayer();
-        player.toggleCaptions("disable");
+        player.toggleCaptions("enable");
         test.info("Captions disabled");
         Thread.sleep(2000);
 

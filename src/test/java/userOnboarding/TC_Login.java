@@ -8,11 +8,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import baseClass.TestBase;
-import pages.ContentLanguageSelectionPage;
-import pages.HomePage;
-import pages.LoginPage;
 import config.ConfigReader;
 import dataProvider.DataProviderClass;
+import pagesSunnxt.ContentLanguageSelectionPage;
+import pagesSunnxt.HomePage;
+import pagesSunnxt.LoginPage;
 import reporting.ExtentReportManager;
 
 public class TC_Login extends TestBase {
@@ -24,10 +24,10 @@ public class TC_Login extends TestBase {
         launchSunnxt();
     }
 
-    /**
-     * Completes language selection and navigates to the Login page.
-     */
-    private LoginPage goToLoginPage() {
+    @Test(enabled = true)
+    public void loginTestPositive() {
+        test.info("Login test starts...");
+
         ContentLanguageSelectionPage cls = new ContentLanguageSelectionPage(driver);
         cls.selectSNLanguages("tamil", "telugu");
         cls.proceedToSNSScreen();
@@ -39,19 +39,12 @@ public class TC_Login extends TestBase {
         hp.navigateToLogin();
         test.info("Navigated to Login page");
 
-        return new LoginPage(driver);
-    }
-
-    @Test(enabled = true)
-    public void loginTestPositive() {
-        test.info("Login test starts...");
-
-        LoginPage lp = goToLoginPage();
+        LoginPage lp = new LoginPage(driver);
         String username = ConfigReader.get("test.username");
         String password = ConfigReader.get("test.password");
 
         lp.enterLoginId(username);
-        
+
         lp.clickContinueButton();
         lp.enterPassword(password);
         lp.clickLoginButton();
@@ -68,7 +61,18 @@ public class TC_Login extends TestBase {
     public void loginTestMultipleUsers(String username, String password) {
         test.info("Login test with multiple users: " + username);
 
-        LoginPage lp = goToLoginPage();
+        ContentLanguageSelectionPage cls = new ContentLanguageSelectionPage(driver);
+        cls.selectSNLanguages("tamil", "telugu");
+        cls.proceedToSNSScreen();
+        cls.selectSNSLanguages("tamil", "telugu");
+        cls.clickProceed();
+        test.info("Language selected");
+
+        HomePage hp = new HomePage(driver);
+        hp.navigateToLogin();
+        test.info("Navigated to Login page");
+
+        LoginPage lp = new LoginPage(driver);
 
         lp.enterLoginId(username);
         lp.clickContinueButton();
@@ -96,7 +100,18 @@ public class TC_Login extends TestBase {
     public void invalidUserIDTest(String username) {
         test.info("Invalid user ID test: " + username);
 
-        LoginPage lp = goToLoginPage();
+        ContentLanguageSelectionPage cls = new ContentLanguageSelectionPage(driver);
+        cls.selectSNLanguages("tamil", "telugu");
+        cls.proceedToSNSScreen();
+        cls.selectSNSLanguages("tamil", "telugu");
+        cls.clickProceed();
+        test.info("Language selected");
+
+        HomePage hp = new HomePage(driver);
+        hp.navigateToLogin();
+        test.info("Navigated to Login page");
+
+        LoginPage lp = new LoginPage(driver);
 
         lp.enterLoginId(username);
 
@@ -119,7 +134,18 @@ public class TC_Login extends TestBase {
     public void invalidPasswordTest() {
         test.info("Invalid password test...");
 
-        LoginPage lp = goToLoginPage();
+        ContentLanguageSelectionPage cls = new ContentLanguageSelectionPage(driver);
+        cls.selectSNLanguages("tamil", "telugu");
+        cls.proceedToSNSScreen();
+        cls.selectSNSLanguages("tamil", "telugu");
+        cls.clickProceed();
+        test.info("Language selected");
+
+        HomePage hp = new HomePage(driver);
+        hp.navigateToLogin();
+        test.info("Navigated to Login page");
+
+        LoginPage lp = new LoginPage(driver);
 
         lp.enterLoginId(ConfigReader.get("test.username"));
         lp.clickContinueButton();

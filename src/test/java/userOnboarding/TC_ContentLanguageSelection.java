@@ -8,7 +8,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import baseClass.TestBase;
-import pages.ContentLanguageSelectionPage;
+import pagesSunnxt.ContentLanguageSelectionPage;
 import reporting.ExtentReportManager;
 
 /**

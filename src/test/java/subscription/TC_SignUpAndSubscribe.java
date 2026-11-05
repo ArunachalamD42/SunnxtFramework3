@@ -7,12 +7,12 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import baseClass.TestBase;
-import pages.ContentLanguageSelectionPage;
-import pages.HomePage;
-import pages.PaymentPage;
-import pages.RazorpayPage;
-import pages.SignupPage;
-import pages.SubscriptionPage;
+import pagesSunnxt.ContentLanguageSelectionPage;
+import pagesSunnxt.HomePage;
+import pagesSunnxt.PaymentPage;
+import pagesSunnxt.RazorpayPage;
+import pagesSunnxt.SignupPage;
+import pagesSunnxt.SubscriptionPage;
 import reporting.ExtentReportManager;
 
 /**

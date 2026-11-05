@@ -1,8 +1,10 @@
 package config;
 
 import java.io.FileInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.Map;
 
 import org.apache.logging.log4j.Logger;
 
@@ -24,6 +26,7 @@ public class ConfigReader {
     private static final Logger logger = Log.getLogger(ConfigReader.class);
     private static Properties properties = new Properties();
     private static Properties envProperties = new Properties();
+    private static Properties adsProperties = new Properties();
     private static boolean isLoaded = false;
 
     private ConfigReader() {
@@ -48,6 +51,19 @@ public class ConfigReader {
             envFis.close();
             logger.info("Loaded environment config: {}", envPath);
 
+            String[] adsFiles = {
+                "testdata/ads-users.example.properties",
+                System.getProperty("ads.users.file", "testdata/ads-users.local.properties")
+            };
+            for (String path : adsFiles) {
+                if (new File(path).isFile()) {
+                    try (FileInputStream input = new FileInputStream(path)) {
+                        adsProperties.load(input);
+                    }
+                    logger.info("Loaded ads user config: {}", path);
+                }
+            }
+
             isLoaded = true;
 
         } catch (IOException e) {
@@ -62,6 +78,9 @@ public class ConfigReader {
         String systemValue = System.getProperty(key);
         if (systemValue != null) return systemValue;
 
+        String adsValue = adsProperties.getProperty(key);
+        if (adsValue != null && !adsValue.isBlank()) return adsValue;
+
         String envValue = envProperties.getProperty(key);
         if (envValue != null) return envValue;
 
@@ -71,6 +90,20 @@ public class ConfigReader {
     public static String get(String key, String defaultValue) {
         String value = get(key);
         return value != null ? value : defaultValue;
+    }
+
+    /** Uses a nonblank runtime environment value first, then normal ConfigReader lookup. */
+    public static String getRuntime(String key) {
+        return getRuntime(key, System.getenv());
+    }
+
+    /** Map overload keeps source-precedence tests independent of the real environment. */
+    static String getRuntime(String key, Map<String, String> environment) {
+        String value = environment.get(key);
+        if (value != null && !value.isBlank()) {
+            return value;
+        }
+        return get(key);
     }
 
     public static int getInt(String key, int defaultValue) {
@@ -102,6 +135,7 @@ public class ConfigReader {
         isLoaded = false;
         properties.clear();
         envProperties.clear();
+        adsProperties.clear();
         loadConfig();
     }
 }

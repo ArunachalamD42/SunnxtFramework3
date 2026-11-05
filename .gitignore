@@ -8,3 +8,6 @@ test-output/
 .settings/
 
 *.log
+
+# Local ad-test accounts and credentials (kept outside packaged resources).
+testdata/ads-users.local.properties

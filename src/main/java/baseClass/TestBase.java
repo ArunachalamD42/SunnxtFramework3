@@ -37,7 +37,8 @@ public class TestBase {
     public WebDriver driver;
     protected static ExtentReports extent;
     protected ExtentTest test;
-    protected NetworkUtils networkUtils;
+    // Network capture is paused. Retained for existing ad-test compatibility.
+    protected NetworkUtils networkUtils = null;
 
     public static final Logger logger = Log.getLogger(TestBase.class);
 
@@ -89,19 +90,6 @@ public class TestBase {
 
         } else {
             throw new IllegalArgumentException("Unsupported browser: " + browser);
-        }
-
-        if (browser.equalsIgnoreCase("chrome")) {
-            try {
-                networkUtils = new NetworkUtils(driver);
-                networkUtils.startCapture();
-            } catch (Exception e) {
-                // Network capture (CDP) is only needed for ad-detection tests.
-                // A CDP version mismatch should not block tests that don't need it.
-                logger.warn("Network capture unavailable (CDP mismatch). Continuing without ad detection: {}",
-                        e.getMessage());
-                networkUtils = null;
-            }
         }
 
         driver.manage().window().maximize();

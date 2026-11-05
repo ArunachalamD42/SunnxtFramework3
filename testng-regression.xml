@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="SunNXT Regression Suite" parallel="none">
+    <listeners>
+        <listener class-name="listeners.AnnotationTransformer"/>
+    </listeners>
+
+    <test name="SunNXT and Sun Shorts Tests" preserve-order="true">
+        <classes>
+            <class name="userOnboarding.TC_UserCreation"/>
+            <class name="userOnboarding.TC_Login"/>
+            <class name="contentPlayback.TC_HomePlayback"/>
+            <class name="contentPlayback.TC_LiveTVPlayback"/>
+            <class name="contentPlayback.TC_MoviesPlayback"/>
+            <class name="playerControls.TC_LiveTVPlayerControls"/>
+            <class name="playerControls.TC_PlayerControls"/>
+            <class name="sunShorts.TC_SunShortsRandomPlayback"/>
+            <class name="sunShorts.TC_SunShortsPlayerControls"/>
+            <class name="subscription.TC_SignUpAndSubscribe"/>
+        </classes>
+    </test>
+</suite>

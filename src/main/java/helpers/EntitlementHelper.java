@@ -6,10 +6,10 @@ import org.openqa.selenium.WebDriver;
 import config.ConfigReader;
 import config.Log;
 import dataProvider.PlanConfig;
-import pages.ContentLanguageSelectionPage;
-import pages.HomePage;
-import pages.LoginPage;
-import pages.PlayerEntitlementPage;
+import pagesSunnxt.ContentLanguageSelectionPage;
+import pagesSunnxt.HomePage;
+import pagesSunnxt.LoginPage;
+import pagesSunnxt.PlayerEntitlementPage;
 
 /**
  * EntitlementHelper - Shared validation logic for entitlement tests.

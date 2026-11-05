@@ -105,16 +105,38 @@ public class WaitUtils {
     // ==================== SCROLL METHODS ====================
 
     public void scrollPageWithLoad() {
-        long pageHeight = (long) js.executeScript("return document.body.scrollHeight");
-        for (int i = 0; i <= pageHeight; i += 100) {
+        long previousHeight = 0;
+        int bottomChecks = 0;
+        long endTime = System.nanoTime() + java.time.Duration.ofSeconds(120).toNanos();
+
+        while (System.nanoTime() < endTime) {
             js.executeScript("window.scrollBy(0,300)");
             try {
-                Thread.sleep(500);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
+                throw new IllegalStateException("Page scrolling was interrupted", e);
+            }
+
+            long pageHeight = ((Number) js.executeScript(
+                    "return Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);")).longValue();
+            boolean atBottom = Boolean.TRUE.equals(js.executeScript(
+                    "return Math.ceil(window.scrollY + window.innerHeight) >= "
+                    + "Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - 2;"));
+
+            if (atBottom && pageHeight == previousHeight) {
+                bottomChecks++;
+            } else {
+                bottomChecks = 0;
+            }
+            previousHeight = pageHeight;
+
+            if (bottomChecks == 3) {
+                logger.info("Page scrolling completed");
+                return;
             }
         }
-        js.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+        throw new org.openqa.selenium.TimeoutException("Page scrolling did not finish within 120 seconds");
     }
 
     public void scrollIntoView(WebElement element) {

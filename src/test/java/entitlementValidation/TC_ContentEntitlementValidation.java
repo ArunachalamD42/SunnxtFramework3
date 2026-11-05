@@ -15,9 +15,9 @@ import config.Log;
 import dataProvider.EntitlementDataProvider;
 import dataProvider.PlanConfig;
 import helpers.EntitlementHelper;
-import pages.ContentDetailPage;
-import pages.HomePage;
-import pages.PlayerEntitlementPage;
+import pagesSunnxt.ContentDetailPage;
+import pagesSunnxt.HomePage;
+import pagesSunnxt.PlayerEntitlementPage;
 import reporting.ExtentReportManager;
 
 /**

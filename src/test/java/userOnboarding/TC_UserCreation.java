@@ -8,9 +8,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import baseClass.TestBase;
-import pages.ContentLanguageSelectionPage;
-import pages.HomePage;
-import pages.SignupPage;
+import pagesSunnxt.ContentLanguageSelectionPage;
+import pagesSunnxt.HomePage;
+import pagesSunnxt.SignupPage;
 import reporting.ExtentReportManager;
 
 public class TC_UserCreation extends TestBase {
@@ -22,7 +22,7 @@ public class TC_UserCreation extends TestBase {
         launchSunnxt();
     }
 
-    @Test(enabled = true, invocationCount = 3)
+    @Test(enabled = false)
     public void userCreationInternational() throws InterruptedException {
         test.info("User creation (International) test starts...");
 
@@ -50,7 +50,7 @@ public class TC_UserCreation extends TestBase {
         test.pass("User Creation (International) Passed");
     }
 
-    @Test(enabled = false, invocationCount = 5)
+    @Test(enabled = true)
     public void userCreationIndia() throws InterruptedException {
         test.info("User creation (India) test starts...");
 

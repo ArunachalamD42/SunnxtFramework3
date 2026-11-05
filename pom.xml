@@ -85,12 +85,6 @@
 			<version>${extentreports.version}</version>
 		</dependency>
 
-		<!-- Selenium DevTools -->
-		<dependency>
-			<groupId>org.seleniumhq.selenium</groupId>
-			<artifactId>selenium-devtools-v133</artifactId>
-			<version>4.29.0</version>
-		</dependency>
 	</dependencies>
 
 	<build>
