@@ -105,8 +105,14 @@ public class WaitUtils {
     // ==================== SCROLL METHODS ====================
 
     public void scrollPageWithLoad() {
+        scrollPageWithLoad(null);
+    }
+
+    public void scrollPageWithLoad(java.util.List<WebElement> carouselTitles) {
         long previousHeight = 0;
+        int previousCount = -1;
         int bottomChecks = 0;
+        int requiredChecks = carouselTitles == null ? 3 : 5;
         long endTime = System.nanoTime() + java.time.Duration.ofSeconds(120).toNanos();
 
         while (System.nanoTime() < endTime) {
@@ -124,15 +130,21 @@ public class WaitUtils {
                     "return Math.ceil(window.scrollY + window.innerHeight) >= "
                     + "Math.max(document.body.scrollHeight, document.documentElement.scrollHeight) - 2;"));
 
-            if (atBottom && pageHeight == previousHeight) {
+            int carouselCount = carouselTitles == null ? 0 : carouselTitles.size();
+
+            if (atBottom && pageHeight == previousHeight && carouselCount == previousCount) {
                 bottomChecks++;
             } else {
                 bottomChecks = 0;
             }
             previousHeight = pageHeight;
+            previousCount = carouselCount;
 
-            if (bottomChecks == 3) {
+            if (bottomChecks == requiredChecks) {
                 logger.info("Page scrolling completed");
+                if (carouselTitles != null) {
+                    logger.info("Carousel count stable after scrolling: {}", carouselCount);
+                }
                 return;
             }
         }

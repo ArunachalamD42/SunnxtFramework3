@@ -182,6 +182,27 @@ public class HomePage extends WaitUtils {
 
     // ==================== TOP NAVIGATION ====================
 
+    public void waitForHomePageLoaded() {
+        logger.info("Waiting for Home page to load after profile selection...");
+        org.openqa.selenium.support.ui.WebDriverWait homeWait =
+                new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(60));
+        homeWait.until(org.openqa.selenium.support.ui.ExpectedConditions.invisibilityOfElementLocated(
+                By.xpath("//h1[contains(text(),'Choose your profile')]")));
+        homeWait.until(org.openqa.selenium.support.ui.ExpectedConditions.elementToBeClickable(homeTab));
+        homeWait.until(org.openqa.selenium.support.ui.ExpectedConditions.visibilityOf(profileIcon));
+        homeWait.ignoring(StaleElementReferenceException.class)
+                .withMessage("Home page carousel content did not load after profile selection")
+                .until(d -> {
+                    for (WebElement carousel : carouselTitles) {
+                        if (carousel.isDisplayed()) {
+                            return true;
+                        }
+                    }
+                    return false;
+                });
+        logger.info("Home page loaded - navigation and carousel content are ready");
+    }
+
     public void navigateToHome() {
         waitForElementToBeClickable(10, homeTab);
         homeTab.click();
@@ -202,8 +223,21 @@ public class HomePage extends WaitUtils {
 
     public void navigateToTvShows() {
         waitForElementToBeClickable(10, tvShowsTab);
+        String previousUrl = driver.getCurrentUrl();
+        String destination = (String) js.executeScript(
+                "var link = arguments[0].closest('a'); return link ? link.href : null;", tvShowsTab);
+        logger.info("TV Shows navigation: current URL = {}, tab destination = {}", previousUrl, destination);
         tvShowsTab.click();
-        logger.info("Navigated to TV Shows");
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(30))
+                .withMessage("TV Shows navigation did not complete after clicking the tab")
+                .until(d -> {
+                    String currentUrl = d.getCurrentUrl();
+                    if (destination != null && !destination.isBlank()) {
+                        return java.net.URI.create(currentUrl).getPath().equals(java.net.URI.create(destination).getPath());
+                    }
+                    return !currentUrl.equals(previousUrl);
+                });
+        logger.info("Navigated to TV Shows: {}", driver.getCurrentUrl());
     }
 
     public void navigateToMusicVideos() {
@@ -390,13 +424,39 @@ public class HomePage extends WaitUtils {
         Thread.sleep(3000);
     }
 
+    /** Opens fixed carousel and content indexes without the scrolling loops. */
+    public void selectContentWithoutScrolling(int carouselIndex, int contentIndex) {
+        if (carouselIndex < 0 || contentIndex < 0) {
+            throw new IllegalArgumentException("Carousel and content indexes must be zero or above");
+        }
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
+                .withMessage("Carousel index " + carouselIndex + " did not load")
+                .until(d -> carouselTitles.size() > carouselIndex);
+        WebElement carousel = carouselTitles.get(carouselIndex);
+        logger.info("Loaded carousels: {}. Selected carousel index: {}, title: {}",
+                carouselTitles.size(), carouselIndex, carousel.getText());
+        waitForElementToBeClickable(10, carousel);
+        carousel.click();
+
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
+                .withMessage("Content index " + contentIndex + " did not load")
+                .until(d -> contentTiles.size() > contentIndex);
+        WebElement content = contentTiles.get(contentIndex);
+        waitForElementToBeClickable(10, content);
+        logger.info("Loaded content tiles: {}. Selected content index: {}", contentTiles.size(), contentIndex);
+        content.click();
+    }
+
     /**
      * Scrolls, picks a carousel and content item, clicks it.
      * Pass -1 for random selection.
      */
     public void contentPlayBackCheck(int carouselIndex, int contentIndex) throws InterruptedException {
+        logger.info("Waiting for carousel headings before scrolling...");
+        waitForFirstElement(carouselTitles);
+
         // Scroll the whole page so lazy-loaded carousel rows are rendered
-        scrollPageWithLoad();
+        scrollPageWithLoad(carouselTitles);
         
         logger.info("Extracting carousels...");
 
@@ -405,6 +465,7 @@ public class HomePage extends WaitUtils {
         for (WebElement carousel : carouselTitles) {
             carouselNames.add(carousel.getText());
         }
+        logger.info("Total carousels found: {}", carouselNames.size());
 
         if (carouselNames.isEmpty()) {
             throw new NoSuchElementException("No carousel titles found after scrolling");
@@ -424,7 +485,7 @@ public class HomePage extends WaitUtils {
 
         // Resolve the chosen carousel's title for logging/validation
         String targetName = carouselTitles.get(carouselIndex).getText();
-        logger.info("Targeted carousel: {}", targetName);
+        logger.info("Selected carousel number: {} (index: {}), title: {}", carouselIndex + 1, carouselIndex, targetName);
 
         // Proceed only if the chosen carousel title is actually present
         if (carouselNames.contains(targetName)) {
@@ -487,7 +548,6 @@ public class HomePage extends WaitUtils {
 								break;
 							}
 						} catch (Exception e) {
-							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
                     } else {

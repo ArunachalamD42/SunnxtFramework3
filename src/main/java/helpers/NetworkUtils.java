@@ -1,6 +1,14 @@
 package helpers;
 
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.nio.charset.StandardCharsets;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.HashMap;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +34,8 @@ public class NetworkUtils {
     private final Set<String> adMediaUrls = new HashSet<>();
     private boolean started;
     private String captureFailure = "Capture has not started";
+    private Path debugLogFile;
+    private final Map<String, String> debugAdRequests = new HashMap<>();
 
     public NetworkUtils(WebDriver driver) {
         if (!(driver instanceof HasCdp)) {
@@ -53,6 +63,84 @@ public class NetworkUtils {
         }
     }
 
+    public void enableDebugLog(String name) {
+        try {
+            Path folder = Path.of("logs", "network");
+            Files.createDirectories(folder);
+            debugLogFile = Files.createTempFile(folder, name.replaceAll("[^a-zA-Z0-9_-]", "_") + "-", ".log");
+            logger.info("Network debug file: {}", debugLogFile.toAbsolutePath());
+        } catch (IOException e) {
+            logger.warn("Could not create the network debug file: {}", e.getClass().getSimpleName());
+        }
+    }
+
+    public Path getDebugLogFile() {
+        return debugLogFile;
+    }
+
+    private String getDebugAdUrl(URI url) {
+        String address = url.getScheme() + "://" + url.getHost();
+        if (url.getPort() != -1) address += ":" + url.getPort();
+        address += url.getRawPath();
+        if (url.getRawQuery() != null) {
+            List<String> allowed = List.of("rt", "pf", "cv", "t", "s", "vbw", "bp", "xpb", "st", "rnd");
+            StringBuilder query = new StringBuilder();
+            for (String part : url.getRawQuery().split("&")) {
+                String[] pair = part.split("=", 2);
+                if (query.length() > 0) query.append("&");
+                query.append(pair[0]).append("=");
+                String key = URLDecoder.decode(pair[0], StandardCharsets.UTF_8);
+                if (allowed.contains(key) && pair.length == 2) {
+                    query.append(pair[1]);
+                } else {
+                    query.append("[redacted]");
+                }
+            }
+            address += "?" + query;
+        }
+        return address;
+    }
+
+    private void writeDebugEvent(LogEntry entry, Map<?, ?> message) {
+        if (debugLogFile == null) return;
+        String method = (String) message.get("method");
+        if (!List.of("Network.requestWillBeSent", "Network.responseReceived", "Network.loadingFinished",
+                "Network.loadingFailed").contains(method)) return;
+        Map<?, ?> params = (Map<?, ?>) message.get("params");
+        if (params == null) return;
+        String requestId = (String) params.get("requestId");
+        Map<?, ?> details = (Map<?, ?>) params.get("request");
+        if (details == null) details = (Map<?, ?>) params.get("response");
+        if (details != null && details.get("url") instanceof String) {
+            try {
+                URI url = URI.create((String) details.get("url"));
+                if (url.getHost() == null || !url.getHost().contains("suntv.videoplaza.")
+                        || url.getPath() == null || !url.getPath().startsWith("/proxy/distributor")) return;
+                debugAdRequests.put(requestId, getDebugAdUrl(url));
+            } catch (IllegalArgumentException e) {
+                return;
+            }
+        }
+        String address = debugAdRequests.get(requestId);
+        if (address == null) return;
+        String line = Instant.ofEpochMilli(entry.getTimestamp()) + " | " + method + " | requestId=" + requestId;
+        if (details != null) {
+            if (details.containsKey("method")) line += " | method=" + details.get("method");
+            if (details.containsKey("status")) line += " | status=" + details.get("status");
+        }
+        if (params.containsKey("errorText")) line += " | error=" + params.get("errorText");
+        line += " | " + address + System.lineSeparator();
+        try {
+            Files.writeString(debugLogFile, line, StandardCharsets.UTF_8, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            logger.warn("Network debug file write failed: {}", e.getClass().getSimpleName());
+            debugLogFile = null;
+        }
+        if ("Network.loadingFinished".equals(method) || "Network.loadingFailed".equals(method)) {
+            debugAdRequests.remove(requestId);
+        }
+    }
+
     /** Poll regularly during playback; log reads drain ChromeDriver's event buffer. */
     private void readRequests() {
         if (!started) return;
@@ -60,6 +148,7 @@ public class NetworkUtils {
             for (LogEntry entry : driver.manage().logs().get(LogType.PERFORMANCE)) {
                 Map<?, ?> envelope = new Json().toType(entry.getMessage(), Map.class);
                 Map<?, ?> message = (Map<?, ?>) envelope.get("message");
+                if (message != null) writeDebugEvent(entry, message);
                 if (message == null || !"Network.requestWillBeSent".equals(message.get("method"))) continue;
                 Map<?, ?> params = (Map<?, ?>) message.get("params");
                 Map<?, ?> request = (Map<?, ?>) params.get("request");

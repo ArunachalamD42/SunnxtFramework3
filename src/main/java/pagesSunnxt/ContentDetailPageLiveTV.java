@@ -12,9 +12,7 @@ import helpers.WaitUtils;
 /**
  * ContentDetailPageLiveTV - Live TV channel detail/info page shown before live playback.
  *
- * <p>This page is the Live TV counterpart to {@link ContentDetailPage} (which is
- * VOD-only). It owns the Live TV specific "Play" button and channel metadata so
- * that VOD and Live TV playback flows stay decoupled.</p>
+ * Keeps Live TV channel metadata and uses the shared Watch Now action.
  */
 public class ContentDetailPageLiveTV extends WaitUtils {
 
@@ -23,9 +21,6 @@ public class ContentDetailPageLiveTV extends WaitUtils {
     public ContentDetailPageLiveTV(WebDriver driver) {
         super(driver);
     }
-
-    @FindBy(xpath = "//button[contains(normalize-space(.),'Watch Now')]")
-    private WebElement playButtonLiveTV;
 
     @FindBy(xpath = "//p[@class='text-lg font-semibold whitespace-nowrap']")
     private WebElement channelTitle;
@@ -44,15 +39,7 @@ public class ContentDetailPageLiveTV extends WaitUtils {
      * Clicks the Live TV "Play" button on the channel detail page.
      */
     public void clickPlayButton() {
-        logger.info("Attempting to click Live TV Watch Now button...");
-        try {
-            // Wait for the channel detail page to render the Watch Now button
-            waitForElementToBeClickable(15, playButtonLiveTV);
-            playButtonLiveTV.click();
-            logger.info("Live TV Watch Now button clicked");
-        } catch (Exception e) {
-            logger.warn("No Live TV Watch Now button found on channel detail page", e);
-        }
+        new ContentDetailPage(driver).clickPlayButton();
     }
 
     /**

@@ -1,7 +1,5 @@
 package pagesSunnxt;
 
-import java.util.List;
-
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
@@ -22,7 +20,7 @@ public class ContentDetailPage extends WaitUtils {
         super(driver);
     }
 
-    @FindBy(xpath = "//span[text()='Watch Now']")
+    @FindBy(xpath = "//span[normalize-space(.)='Watch Now'] | //button[contains(normalize-space(.),'Watch Now')]")
     private WebElement playButton;
 
     @FindBy (xpath="//img[@alt='watchlist']")
@@ -43,23 +41,13 @@ private WebElement subscribeToWatchButton;
     }
 
     /**
-     * Clicks the VOD "Watch Now" play button on the content detail page.
-     * Live TV playback is handled separately by {@link ContentDetailPageLiveTV}.
+     * Clicks Watch Now for Movies, TV Shows, and Live TV.
      */
     public void clickPlayButton() {
         logger.info("Attempting to click Watch Now button...");
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-        if (isElementDisplayed(playButton)) {
-            playButton.click();
-            logger.info("Watch Now button clicked");
-        } else {
-            logger.warn("No Watch Now button found on VOD detail page");
-        }
+        waitForElementToBeClickable(30, playButton);
+        playButton.click();
+        logger.info("Watch Now button clicked");
     }
     
     public boolean isWatchNowEnabled() {

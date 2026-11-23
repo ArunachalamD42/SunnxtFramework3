@@ -21,6 +21,43 @@ import org.testng.annotations.Test;
 public class NetworkUtilsTest {
 
     @Test
+    public void debugFileContainsOnlySanitizedNetworkEventsAndSurvivesObservationReset() throws Exception {
+        NetworkStub stub = new NetworkStub();
+        NetworkUtils network = new NetworkUtils(stub.driver);
+        network.startCapture();
+        Assert.assertNull(network.getDebugLogFile(), "Debug files must be opt-in");
+        network.enableDebugLog("NetworkUtilsTest");
+        java.nio.file.Path file = network.getDebugLogFile();
+        try {
+            stub.pending.add(new LogEntry(Level.INFO, 1234, new Json().toJson(Map.of("message", Map.of(
+                    "method", "Network.requestWillBeSent", "params", Map.of("requestId", "test-1", "request", Map.of(
+                            "url", "https://user:secret@in-suntv.videoplaza.tv/proxy/distributor/v2?rt=vp_3.0&token=private#fragment",
+                            "method", "POST", "headers", Map.of("Cookie", "private-cookie"), "postData", "private-body")))))));
+            network.clearCapturedRequests();
+            stub.pending.add(new LogEntry(Level.INFO, 2345, new Json().toJson(Map.of("message", Map.of(
+                    "method", "Network.responseReceived", "params", Map.of("requestId", "test-1", "response", Map.of(
+                            "url", "https://in-suntv.videoplaza.tv/proxy/distributor/v2?rt=vp_3.0&token=private", "status", 200)))))));
+            stub.request("https://example.test/ordinary.css");
+            stub.pending.add(new LogEntry(Level.INFO, 3456, new Json().toJson(Map.of("message", Map.of(
+                    "method", "Page.loadEventFired", "params", Map.of())))));
+            network.getCapturedRequests();
+            String log = java.nio.file.Files.readString(file);
+            Assert.assertTrue(log.contains("Network.requestWillBeSent"));
+            Assert.assertTrue(log.contains("Network.responseReceived"));
+            Assert.assertTrue(log.contains("https://in-suntv.videoplaza.tv/proxy/distributor/v2?rt=vp_3.0&token=[redacted]"));
+            Assert.assertFalse(log.contains("ordinary.css"));
+            Assert.assertFalse(log.contains("\\u002f"));
+            Assert.assertTrue(log.contains("200"));
+            Assert.assertFalse(log.contains("Page.loadEventFired"));
+            for (String sensitive : List.of("secret", "private", "fragment", "headers", "postData")) {
+                Assert.assertFalse(log.contains(sensitive), "Must not write: " + sensitive);
+            }
+        } finally {
+            java.nio.file.Files.deleteIfExists(file);
+        }
+    }
+
+    @Test
     public void noTrafficIsNotProofOfAnAdFreeObservation() {
         NetworkStub stub = new NetworkStub();
         NetworkUtils network = new NetworkUtils(stub.driver);

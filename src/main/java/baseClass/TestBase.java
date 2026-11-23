@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
 
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
@@ -14,6 +15,8 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxOptions;
+import org.openqa.selenium.logging.LogType;
+import org.openqa.selenium.logging.LoggingPreferences;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.testng.annotations.AfterSuite;
@@ -37,7 +40,7 @@ public class TestBase {
     public WebDriver driver;
     protected static ExtentReports extent;
     protected ExtentTest test;
-    // Network capture is paused. Retained for existing ad-test compatibility.
+    // Network capture is opt-in; regular tests leave it disabled.
     protected NetworkUtils networkUtils = null;
 
     public static final Logger logger = Log.getLogger(TestBase.class);
@@ -59,21 +62,41 @@ public class TestBase {
      * Sets up WebDriver based on config. Supports chrome and firefox.
      */
     public void setupDriver() {
+        setupDriver(false);
+    }
+
+    public void setupDriver(boolean captureNetwork) {
+        networkUtils = null;
         String browser = ConfigReader.getBrowser();
         boolean headless = ConfigReader.getBoolean("headless", false);
+        if (captureNetwork && !browser.equalsIgnoreCase("chrome")) {
+            throw new IllegalArgumentException("Browser network capture for ads requires Chrome");
+        }
 
         if (browser.equalsIgnoreCase("chrome")) {
             ChromeOptions options = new ChromeOptions();
             Map<String, Object> prefs = new HashMap<>();
             prefs.put("profile.default_content_setting_values.notifications", 2);
+            if (captureNetwork && Boolean.getBoolean("ads.seek.debug")) {
+                prefs.put("devtools.preferences", Map.of("panel-selectedTab", "\"network\""));
+                options.addArguments("--auto-open-devtools-for-tabs");
+            }
             options.setExperimentalOption("prefs", prefs);
             options.setPageLoadStrategy(PageLoadStrategy.EAGER);
+            if (captureNetwork) {
+                LoggingPreferences logs = new LoggingPreferences();
+                logs.enable(LogType.PERFORMANCE, Level.ALL);
+                options.setCapability("goog:loggingPrefs", logs);
+                options.setExperimentalOption("perfLoggingPrefs", Map.of("enableNetwork", true, "enablePage", false));
+            }
 
             if (headless) {
                 options.addArguments("--headless=new");
             }
 
-            WebDriverManager.chromedriver().setup();
+            if (System.getProperty("webdriver.chrome.driver", "").isBlank()) {
+                WebDriverManager.chromedriver().setup();
+            }
             driver = new ChromeDriver(options);
 
         } else if (browser.equalsIgnoreCase("firefox")) {
@@ -90,6 +113,11 @@ public class TestBase {
 
         } else {
             throw new IllegalArgumentException("Unsupported browser: " + browser);
+        }
+
+        if (captureNetwork) {
+            networkUtils = new NetworkUtils(driver);
+            networkUtils.startCapture();
         }
 
         driver.manage().window().maximize();

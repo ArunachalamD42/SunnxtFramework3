@@ -3,7 +3,7 @@
 <suite name="SunNXT Ads Playback" parallel="none" configfailurepolicy="continue">
     <test name="Six plan playback and ads">
         <classes>
-            <class name="adsPlayback.TC_AdsPlayback"/>
+            <class name="adsPlayback.TC_AdsSimple"/>
         </classes>
     </test>
 </suite>

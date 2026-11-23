@@ -100,6 +100,7 @@ public class ProfilePage extends WaitUtils {
     public void selectPrimaryProfile() {
         selectProfileByIndex(1);
         logger.info("Primary profile selected");
+        new HomePage(driver).waitForHomePageLoaded();
     }
 
     /**
