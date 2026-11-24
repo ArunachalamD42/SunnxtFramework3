@@ -49,6 +49,29 @@ public class SubscriptionPage extends WaitUtils {
     @FindBy(xpath = "//button[text()='Confirm Cancellation']")
     private WebElement cancelSubscription;
 
+    @FindBy(xpath = "//h1[contains(normalize-space(.),'Subscription')] | //h2[contains(normalize-space(.),'Subscribe')]")
+    private WebElement subscriptionHeading;
+    
+    @FindBy (xpath = "//h2[text()='Subscribe']")
+private WebElement subscribeHrader;
+    
+    public boolean isSubscriptionPageDisplayed() {
+    	waitForElementToBeVisible(30, subscribeHrader);
+        String currentUrl = driver.getCurrentUrl().toLowerCase();
+System.out.println(currentUrl);
+        if (currentUrl.contains("subscription")) {
+            logger.info("Subscription page opened: {}", driver.getCurrentUrl());
+            return true;
+        }
+		return false;
+
+//        boolean subscriptionHeadingDisplayed = isElementVisible(30, subscriptionHeading);
+//        if (subscriptionHeadingDisplayed) {
+//            logger.info("Subscription page heading displayed");
+//        }
+//        return subscriptionHeadingDisplayed;
+    }
+
     /**
      * Selects a subscription plan and navigates to PaymentPage.
      */

@@ -192,6 +192,13 @@ public class LoginPage extends WaitUtils {
     }
 
     /**
+     * Returns true when the first login screen is displayed.
+     */
+    public boolean isLoginPageDisplayed() {
+        return isElementVisible(15, emailField);
+    }
+
+    /**
      * Returns true if login succeeded, detected via the post-login profile icon.
      */
     public boolean isLoggedIn() {

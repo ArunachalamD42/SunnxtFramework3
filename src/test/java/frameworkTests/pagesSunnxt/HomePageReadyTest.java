@@ -1,4 +1,6 @@
-package pagesSunnxt;
+package frameworkTests.pagesSunnxt;
+
+import pagesSunnxt.HomePage;
 
 import java.lang.reflect.Proxy;
 import java.util.List;

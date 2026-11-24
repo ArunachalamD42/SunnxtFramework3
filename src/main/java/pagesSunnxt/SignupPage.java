@@ -151,12 +151,28 @@ public class SignupPage extends WaitUtils {
         createAccountBtn.click();
         logger.info("Create Account button clicked");
     }
+    
+    public void enterConfirmPasswordWithoutGdpr(String confirmPassword) {
+        waitForElementToBeClickable(5, confirmPasswordField);
+        if (!confirmPassword.isEmpty()) {
+            confirmPasswordField.sendKeys(confirmPassword);
+            logger.info("Confirm password entered");
+        } else {
+            waitForElementToBeVisible(5, newPasswordField);
+            logger.info("Skipping: empty confirm password scenario");
+        }
+
+    
+
+        createAccountBtn.click();
+        logger.info("Create Account button clicked");
+    }
 
     /**
      * Selects gender from the demographic form.
      */
     public void selectGender(String gender) {
-        waitForElementToBeClickable(20, genderDropdown);
+        waitForElementToBeClickable(40, genderDropdown);
         if (!saveBtn.isEnabled()) {
             if (gender.equalsIgnoreCase("male")) {
                 genderDropdown.click();

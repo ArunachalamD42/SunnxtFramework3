@@ -51,7 +51,7 @@ public class TC_AdsSimple extends TestBase {
 				{"SNS Annual Premium",       "SUNNXT_ENTITLEMENT_SNS_PREMIUM_CREDENTIAL_MOBILE",  "SUNNXT_ENTITLEMENT_SNS_PREMIUM_CREDENTIAL_PASSWORD",  "NO",  "NO"}
 		};
 		String[] sections = {
-				"TV Shows" // Debug TV Shows alone.
+				"TV Shows","Movies"  // Debug TV Shows alone.
 		};
 		List<String> failures = new ArrayList<>();
 

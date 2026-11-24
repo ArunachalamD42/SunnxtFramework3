@@ -1,4 +1,6 @@
-package helpers;
+package frameworkTests.helpers;
+
+import helpers.NetworkUtils;
 
 import java.io.File;
 import java.net.InetSocketAddress;

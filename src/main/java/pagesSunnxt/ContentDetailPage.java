@@ -20,7 +20,7 @@ public class ContentDetailPage extends WaitUtils {
         super(driver);
     }
 
-    @FindBy(xpath = "//span[normalize-space(.)='Watch Now'] | //button[contains(normalize-space(.),'Watch Now')]")
+    @FindBy(xpath = "//span[contains(normalize-space(.),'Watch Now')] | //button[contains(normalize-space(.),'Watch Now')]")
     private WebElement playButton;
 
     @FindBy (xpath="//img[@alt='watchlist']")
@@ -29,7 +29,7 @@ private WebElement watchlistButton;
 @FindBy (xpath="//img[@alt='share']")
 private WebElement shareButton;
 
-@FindBy(xpath="//span[text()='Subscribe to Watch']")
+@FindBy(xpath="//button[contains(normalize-space(.),'Subscribe to Watch')] | //span[normalize-space(.)='Subscribe to Watch']")
 private WebElement subscribeToWatchButton;
 
 
@@ -38,6 +38,25 @@ private WebElement subscribeToWatchButton;
 
     public boolean isSubscribeToWatchDisplayed() {
         return isElementDisplayed(subscribeToWatchButton);
+    }
+
+    public String getSubscribeToWatchText() {
+        waitForElementToBeVisible(30, subscribeToWatchButton);
+        String subscribeToWatchText = subscribeToWatchButton.getText().trim();
+        logger.info("Subscribe CTA displayed: {}", subscribeToWatchText);
+        return subscribeToWatchText;
+    }
+
+    public void clickSubscribeToWatchButton() {
+        waitForElementToBeClickable(30, subscribeToWatchButton);
+        subscribeToWatchButton.click();
+        logger.info("Subscribe to Watch button clicked");
+    }
+
+    public void clickWatchlistButton() {
+        waitForElementToBeClickable(30, watchlistButton);
+        watchlistButton.click();
+        logger.info("Watchlist button clicked");
     }
 
     /**
@@ -53,6 +72,13 @@ private WebElement subscribeToWatchButton;
     public boolean isWatchNowEnabled() {
     	waitForElementToBeClickable(30, playButton);
     	return playButton.isEnabled();
+    }
+
+    public String getWatchNowText() {
+        waitForElementToBeVisible(30, playButton);
+        String watchNowText = playButton.getText().trim();
+        logger.info("Watch Now CTA displayed: {}", watchNowText);
+        return watchNowText;
     }
 
     public String getContentName() {

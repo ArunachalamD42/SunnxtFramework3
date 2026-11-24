@@ -1,4 +1,6 @@
-package helpers;
+package frameworkTests.helpers;
+
+import helpers.NetworkUtils;
 
 import java.lang.reflect.Proxy;
 import java.util.List;

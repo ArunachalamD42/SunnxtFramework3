@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Workbook Automation" parallel="none" configfailurepolicy="continue">
+    <test name="Workbook supported scenarios" preserve-order="true">
+        <classes>
+            <class name="workbookTests.TC_WorkbookNavigation"/>
+            <class name="workbookTests.TC_WorkbookPlayer"/>
+            <class name="workbookTests.TC_WorkbookShorts"/>
+        </classes>
+    </test>
+</suite>

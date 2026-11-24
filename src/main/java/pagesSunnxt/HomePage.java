@@ -68,6 +68,9 @@ public class HomePage extends WaitUtils {
     @FindBy(xpath = "//span[text()='Comedy']")
     private WebElement comedyTab;
 
+    @FindBy(xpath = "//span[normalize-space(.)='Free']")
+    private WebElement freeTab;
+
     @FindBy(xpath = "//span[text()='Shorts']")
     private WebElement shortsTab;
 
@@ -81,6 +84,11 @@ public class HomePage extends WaitUtils {
 
     @FindBy(xpath = "//img[@alt='poster']")
     private List<WebElement> viewAllBanners;
+    
+    @FindBy(xpath = "(//button[.//img[@alt='watchlist']])[1]")
+    private WebElement watchlistIconOfFirstPoster;
+    
+    
 
     // ==================== LIVE TV ELEMENTS ====================
 
@@ -107,7 +115,7 @@ public class HomePage extends WaitUtils {
     // ==================== WAIT CHECKS ====================
 
     private void waitForFirstElement(List<WebElement> elements) {
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(45))
                 .ignoring(StaleElementReferenceException.class)
                 .until(d -> {
                     if (elements.isEmpty()) {
@@ -209,6 +217,36 @@ public class HomePage extends WaitUtils {
         logger.info("Navigated to Home");
     }
 
+    public void waitForSectionLoaded(String section) {
+        WebElement tab;
+        if (section.equals("Movies")) {
+            tab = moviesTab;
+        } else if (section.equals("TV Shows")) {
+            tab = tvShowsTab;
+        } else if (section.equals("Live TV")) {
+            tab = liveTvTab;
+        } else if (section.equals("Music Videos")) {
+            tab = musicVideosTab;
+        } else if (section.equals("Free")) {
+            tab = freeTab;
+        } else {
+            throw new IllegalArgumentException("Unsupported section: " + section);
+        }
+        waitForElementToBeVisible(15, tab);
+        String destination = (String) js.executeScript(
+                "var link=arguments[0].closest('a'); return link ? link.href : null;", tab);
+        if (destination == null || destination.isBlank()) {
+            throw new IllegalStateException(section + " tab has no link to verify");
+        }
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(30))
+                .withMessage(section + " destination did not load")
+                .until(d -> java.net.URI.create(d.getCurrentUrl()).getPath()
+                        .equals(java.net.URI.create(destination).getPath())
+                        && ("interactive".equals(js.executeScript("return document.readyState;"))
+                                || "complete".equals(js.executeScript("return document.readyState;"))));
+        logger.info("{} destination verified", section);
+    }
+
     public void navigateToMovies() {
         waitForElementToBeClickable(10, moviesTab);
         moviesTab.click();
@@ -250,6 +288,12 @@ public class HomePage extends WaitUtils {
         waitForElementToBeClickable(10, comedyTab);
         comedyTab.click();
         logger.info("Navigated to Comedy");
+    }
+
+    public void navigateToFree() {
+        waitForElementToBeClickable(10, freeTab);
+        freeTab.click();
+        logger.info("Navigated to Free");
     }
 
     public void navigateToShorts() {
@@ -296,6 +340,21 @@ public class HomePage extends WaitUtils {
         logger.info("First content selected");
         Thread.sleep(3000);
     }
+    
+    public void watchlistFirstContentFromCarousel() throws InterruptedException {
+        logger.info("Selecting first content from first carousel...");
+
+        // Let the section settle so carousel titles don't go stale mid-interaction
+        waitForFirstElement(carouselTitles);
+        Thread.sleep(2000);
+
+        // PageFactory locates the current carousel when the list is accessed
+        WebElement firstCarousel = carouselTitles.get(0);
+        scrollIntoView(firstCarousel);
+        
+        watchlistIconOfFirstPoster.click();
+
+	}
 
     /**
      * Picks the first Live TV channel tile and opens it (no language change).
@@ -429,7 +488,7 @@ public class HomePage extends WaitUtils {
         if (carouselIndex < 0 || contentIndex < 0) {
             throw new IllegalArgumentException("Carousel and content indexes must be zero or above");
         }
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(60))
                 .withMessage("Carousel index " + carouselIndex + " did not load")
                 .until(d -> carouselTitles.size() > carouselIndex);
         WebElement carousel = carouselTitles.get(carouselIndex);
@@ -438,13 +497,67 @@ public class HomePage extends WaitUtils {
         waitForElementToBeClickable(10, carousel);
         carousel.click();
 
-        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(15))
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(60))
                 .withMessage("Content index " + contentIndex + " did not load")
                 .until(d -> contentTiles.size() > contentIndex);
         WebElement content = contentTiles.get(contentIndex);
         waitForElementToBeClickable(10, content);
         logger.info("Loaded content tiles: {}. Selected content index: {}", contentTiles.size(), contentIndex);
         content.click();
+    }
+
+    /** Opens the first paid content card from the selected carousel. */
+    public void selectContentWithoutFreeTag(int carouselIndex) {
+        if (carouselIndex < 0) {
+            throw new IllegalArgumentException("Carousel index must be zero or above");
+        }
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(60))
+                .withMessage("Carousel index " + carouselIndex + " did not load")
+                .until(d -> carouselTitles.size() > carouselIndex);
+        
+        WebElement carousel = carouselTitles.get(carouselIndex);
+        logger.info("Loaded carousels: {}. Selected carousel index: {}, title: {}",
+                carouselTitles.size(), carouselIndex, carousel.getText());
+        waitForElementToBeClickable(10, carousel);
+        carousel.click();
+
+        new org.openqa.selenium.support.ui.WebDriverWait(driver, java.time.Duration.ofSeconds(60))
+                .withMessage("Content tiles did not load")
+                .until(d -> !contentTiles.isEmpty());
+
+        for (int index = 0; index < contentTiles.size(); index++) {
+            WebElement content = contentTiles.get(index);
+            boolean freeTagFound = !content.findElements(By.xpath(
+                    ".//*[contains(@class,'free_badge') or @alt='free_badge' or contains(@src,'Free_tag')]")).isEmpty();
+
+            if (!freeTagFound) {
+                waitForElementToBeClickable(10, content);
+                logger.info("Loaded content tiles: {}. Selected paid content index: {}", contentTiles.size(), index);
+                content.click();
+                return;
+            }
+        }
+
+        throw new NoSuchElementException("No content without a Free tag was found");
+    }
+
+    /** Opens the first Live TV channel that does not display a Free tag. */
+    public void selectLiveChannelWithoutFreeTag() throws InterruptedException {
+        waitForFirstElement(liveChannelTiles);
+
+        for (int index = 0; index < liveChannelTiles.size(); index++) {
+            WebElement channel = liveChannelTiles.get(index);
+            boolean freeTagFound = !channel.findElements(By.xpath(
+                    ".//*[contains(@class,'free_badge') or @alt='free_badge' or contains(@src,'Free_tag')]")).isEmpty();
+
+            if (!freeTagFound) {
+                logger.info("Selected paid Live TV channel index: {}", index);
+                selectLiveChannel(index);
+                return;
+            }
+        }
+
+        throw new NoSuchElementException("No Live TV channel without a Free tag was found");
     }
 
     /**

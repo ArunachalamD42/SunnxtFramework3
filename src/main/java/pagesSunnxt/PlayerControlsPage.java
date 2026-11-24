@@ -82,6 +82,38 @@ public class PlayerControlsPage extends WaitUtils {
 
     // ==================== CONTROLS ====================
 
+    public boolean isPaused() {
+        return Boolean.TRUE.equals(js.executeScript("return arguments[0].paused;", shakaPlayer));
+    }
+
+    public boolean isMuted() {
+        return Boolean.TRUE.equals(js.executeScript("return arguments[0].muted;", shakaPlayer));
+    }
+
+    public void toggleMute() {
+        moveFocusToPlayer();
+        waitForElementToBeClickable(10, muteButton);
+        muteButton.click();
+        logger.info("Volume icon clicked");
+    }
+
+    public boolean isPlayButtonDisplayed() {
+        return isElementVisible(10, playButton);
+    }
+
+    public boolean isPauseButtonDisplayed() {
+        return isElementVisible(10, pauseButton);
+    }
+
+    public double getPlaybackPosition() {
+        return ((Number) js.executeScript("return arguments[0].currentTime;", shakaPlayer)).doubleValue();
+    }
+
+    public double getTimelinePosition() {
+        WebElement timeline = driver.findElement(org.openqa.selenium.By.xpath("//input[@type='range' and @aria-label='Seek']"));
+        return Double.parseDouble(timeline.getDomProperty("value"));
+    }
+
     public void play() {
         waitForElementToBeClickable(5, playButton);
         playButton.click();

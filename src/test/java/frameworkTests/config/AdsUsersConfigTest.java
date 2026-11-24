@@ -1,4 +1,6 @@
-package config;
+package frameworkTests.config;
+
+import config.ConfigReader;
 
 import java.io.InputStream;
 import java.nio.file.Files;

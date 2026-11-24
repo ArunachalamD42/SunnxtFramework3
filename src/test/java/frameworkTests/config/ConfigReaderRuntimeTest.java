@@ -1,4 +1,6 @@
-package config;
+package frameworkTests.config;
+
+import config.ConfigReader;
 
 import java.util.Map;
 import org.testng.Assert;
@@ -20,13 +22,15 @@ public class ConfigReaderRuntimeTest {
 
     @Test(dataProvider = "sourceValues")
     public void supportsEnvironmentAndConfigReaderWithoutChangingTheirValues(
-            Map<String, String> environment, String configValue, String expected) {
+            Map<String, String> environment, String configValue, String expected) throws ReflectiveOperationException {
         String key = "unit.runtime.source";
         String previous = System.getProperty(key);
         try {
             if (configValue == null) System.clearProperty(key);
             else System.setProperty(key, configValue);
-            Assert.assertEquals(ConfigReader.getRuntime(key, environment), expected);
+            var runtimeLookup = ConfigReader.class.getDeclaredMethod("getRuntime", String.class, Map.class);
+            runtimeLookup.setAccessible(true);
+            Assert.assertEquals(runtimeLookup.invoke(null, key, environment), expected);
         } finally {
             if (previous == null) System.clearProperty(key);
             else System.setProperty(key, previous);

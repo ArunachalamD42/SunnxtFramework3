@@ -103,6 +103,19 @@ public class ContentLanguageSelectionPage extends WaitUtils {
 
     // ==================== VALIDATION HELPERS ====================
 
+    public boolean isSNLanguageScreenDisplayed() {
+        return isElementVisible(15, snHeader);
+    }
+
+    public boolean isSNSLanguageScreenDisplayed() {
+        return isElementVisible(15, snsHeader);
+    }
+
+    public boolean isProceedEnabled() {
+        waitForElementToBeVisible(10, proceedButton);
+        return proceedButton.isEnabled();
+    }
+
     /**
      * Checks if an SNS language shows "Coming Soon" (i.e., is disabled/unsupported).
      */

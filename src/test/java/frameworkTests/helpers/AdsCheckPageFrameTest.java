@@ -1,4 +1,4 @@
-package helpers;
+package frameworkTests.helpers;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
